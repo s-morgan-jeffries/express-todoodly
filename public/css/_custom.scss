@@ -1,0 +1,59 @@
+// Custom CSS goes here
+footer {
+  text-align: center;
+  //  border-top: solid #000000;
+}
+
+//@debug pull-left;
+
+.pull-left-sm-and-up {
+  @media screen and (min-width: $screen-xs) {
+//    @extend .pull-left;
+    float: left !important;
+  }
+}
+
+.pull-right-sm-and-up {
+  @media screen and (min-width: $screen-xs) {
+    float: right !important;
+  }
+}
+
+.center-block-xs {
+  @media screen and (max-width: $screen-xs) {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+}
+
+.nav.center-block-xs > li {
+  @media screen and (max-width: $screen-xs) {
+    float: none;
+  }
+}
+
+.btn-link {
+  color: $link-color;
+  text-decoration: none;
+  background: transparent;
+  &:hover, &:focus {
+    color: $gray-dark;
+  }
+  &:active, &:hover {
+    outline: 0;
+  }
+  .nav > li > & {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+  }
+  .nav > li > &:hover, .nav > li > &:focus {
+    text-decoration: none;
+    background-color: $gray-lighter;
+  }
+  .nav-pills > li > & {
+    border-radius: 4px;
+  }
+}

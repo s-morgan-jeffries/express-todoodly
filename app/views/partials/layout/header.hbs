@@ -1,0 +1,20 @@
+<header class="header clearfix" role="navigation">
+    <h3 class="pull-left-sm-and-up center-block-xs"><a href="/" class="text-muted">TodoApp</a></h3>
+    <ul class="nav nav-pills pull-right-sm-and-up center-block-xs">
+        <li><a class="btn btn-primary" href="/home">Home</a></li>
+        <li><a class="btn" href="/about">About</a></li>
+        {{#if isAuthenticated}}
+            {{!--This creates a submit button for a dummy form. The form, in turn, sends a DELETE request to "/signout".
+            I had to use a special class to style the button so that it looks like a link. Kind of overkill.--}}
+            <li><button type="submit" class="btn btn-link" form="signout-form">Sign Out</button></li>
+        {{else}}
+            <li><a class="btn" href="/signin">Sign In</a></li>
+        {{/if}}
+    </ul>
+</header>
+{{#if isAuthenticated}}
+    {{!--This is the dummy form.--}}
+    <form id="signout-form" action="/signout" method="post">
+        <input type="hidden" name="_method" value="delete"/>
+    </form>
+{{/if}}

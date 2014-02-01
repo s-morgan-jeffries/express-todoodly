@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites>
+<testsuite name="model2" errors="0" tests="0" failures="0" time="0.001" timestamp="2014-01-31T15:40:28">
+</testsuite>
+<testsuite name="model2.1+2" errors="0" tests="2" failures="2" time="0.004" timestamp="2014-01-31T15:40:28">
+  <testcase classname="model2.1+2" name="should equal 3" time="0.004"><failure>1: TypeError: Cannot call method &apos;equal&apos; of undefined</failure></testcase>
+  <testcase classname="model2.1+2" name="should not equal 3" time="0"><failure>1: TypeError: Cannot read property &apos;not&apos; of undefined</failure></testcase>
+</testsuite>
+</testsuites>
