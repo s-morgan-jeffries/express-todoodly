@@ -8,7 +8,8 @@ var express = require('express'),
   passport = require('passport'),
   // Connect middleware to interface with MongoDB
   mongoStore = require('connect-mongo')(express),
-  flash = require('connect-flash');
+  flash = require('connect-flash'),
+  locals = require('./config/middlewares/locals');
 
 var config = {
   db: {
@@ -97,7 +98,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Locals for use in templates
-app.use(require('./lib/locals'));
+app.use(locals());
 
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));

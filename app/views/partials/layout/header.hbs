@@ -4,16 +4,19 @@
         <li><a class="btn btn-primary" href="/home">Home</a></li>
         <li><a class="btn" href="/about">About</a></li>
         {{#if isAuthenticated}}
+            <li><a class="btn" href="/users/{{user.id}}">Profile</a></li>
             {{!--This creates a submit button for a dummy form. The form, in turn, sends a DELETE request to "/signout".
             I had to use a special class to style the button so that it looks like a link. Kind of overkill.--}}
-            <li><button type="submit" class="btn btn-link" form="signout-form">Sign Out</button></li>
+            <li>
+                <button type="submit" class="btn btn-link" form="signout-form">Sign Out</button>
+            </li>
         {{else}}
             <li><a class="btn" href="/signin">Sign In</a></li>
         {{/if}}
     </ul>
 </header>
 {{#if isAuthenticated}}
-    {{!--This is the dummy form.--}}
+{{!--This is the dummy form.--}}
     <form id="signout-form" action="/signout" method="post">
         <input type="hidden" name="_method" value="delete"/>
     </form>

@@ -32,6 +32,11 @@ footer {
   @media screen and (max-width: $screen-xs) {
     float: none;
   }
+  &>button {
+    @media screen and (max-width: $screen-xs) {
+      width: 100%;
+    }
+  }
 }
 
 .btn-link {
@@ -56,4 +61,13 @@ footer {
   .nav-pills > li > & {
     border-radius: 4px;
   }
+}
+
+.glyphicon-inverse {
+  text-decoration: line-through;
+}
+
+.todo-list {
+  width: 300px;
+  @extend .center-block;
 }

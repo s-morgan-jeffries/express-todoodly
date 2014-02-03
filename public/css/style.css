@@ -2505,8 +2505,8 @@ input[type="button"].btn-block {
 
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url(twbs-font-path("bootstrap/glyphicons-halflings-regular.eot"));
-  src: url(twbs-font-path("bootstrap/glyphicons-halflings-regular.eot?#iefix")) format("embedded-opentype"), url(twbs-font-path("bootstrap/glyphicons-halflings-regular.woff")) format("woff"), url(twbs-font-path("bootstrap/glyphicons-halflings-regular.ttf")) format("truetype"), url(twbs-font-path("bootstrap/glyphicons-halflings-regular.svg#glyphicons-halflingsregular")) format("svg");
+  src: url("../components/bootstrap-sass/vendor/assets/fonts/bootstrap/glyphicons-halflings-regular.eot");
+  src: url("../components/bootstrap-sass/vendor/assets/fonts/bootstrap/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../components/bootstrap-sass/vendor/assets/fonts/bootstrap/glyphicons-halflings-regular.woff") format("woff"), url("../components/bootstrap-sass/vendor/assets/fonts/bootstrap/glyphicons-halflings-regular.ttf") format("truetype"), url("../components/bootstrap-sass/vendor/assets/fonts/bootstrap/glyphicons-halflings-regular.svg#glyphicons-halflingsregular") format("svg");
 }
 
 .glyphicon {
@@ -5788,7 +5788,7 @@ button.close {
   clear: both;
 }
 
-.center-block {
+.center-block, .todo-list {
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -6493,6 +6493,11 @@ footer {
     float: none;
   }
 }
+@media screen and (max-width: 480px) {
+  .nav.center-block-xs > li > button {
+    width: 100%;
+  }
+}
 
 .btn-link {
   color: #428bca;
@@ -6516,4 +6521,12 @@ footer {
 }
 .nav-pills > li > .btn-link {
   border-radius: 4px;
+}
+
+.glyphicon-inverse {
+  text-decoration: line-through;
+}
+
+.todo-list {
+  width: 300px;
 }

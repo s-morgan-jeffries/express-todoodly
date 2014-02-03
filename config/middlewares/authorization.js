@@ -20,7 +20,7 @@ exports.isAuthenticated = function (req, res, next) {
 
 exports.user = {
   isAuthorized: function (req, res, next) {
-    if (req.params.id !== req.user.id) {
+    if (req.params.userId !== req.user.id) {
       // This would be a 403 error, but we're going to handle it without sending an error.
       req.flash('message', 'You are not authorized');
       req.flash('alertType', 'danger');

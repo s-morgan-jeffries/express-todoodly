@@ -23,11 +23,11 @@ module.exports = function(User, mongoose) {
   moduleExports.show = function(req, res, next) {
     var user = req.user;
     res.render('user/show', {
-      user: user,
-      flash: {
-        message: req.flash('message'),
-        alertType: req.flash('alertType')
-      }
+//      user: user,
+//      flash: {
+//        message: req.flash('message'),
+//        alertType: req.flash('alertType')
+//      }
     });
   };
 

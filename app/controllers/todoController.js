@@ -1,109 +1,76 @@
-var uid = require('express/node_modules/connect/node_modules/uid2');
-//var mongoose = require( 'mongoose' );
-//var Todo     = mongoose.model( 'Todo' );
+'use strict';
 
-module.exports = function(Todo, mongoose) {
+var _ = require('lodash');
+
+//HTTP Verb	Path	Action	Used for
+//  GET	/photos	index	display a list of all photos
+//GET	/photos/new	new	return an HTML form for creating a new photo
+//POST	/photos	create	create a new photo
+//GET	/photos/:id	show	display a specific photo
+//GET	/photos/:id/edit	edit	return an HTML form for editing a photo
+//PATCH/PUT	/photos/:id	update	update a specific photo
+//DELETE	/photos/:id	destroy	delete a specific photo
+
+module.exports = function(todoModel) {
   var moduleExports = {};
 
+  moduleExports.create = function(req, res, next) {
+    var todo = new todoModel,
+      successRedirect = req.body.successRedirect || '/',
+      failureRedirect = req.body.failureRedirect || '/';
 
-
-  moduleExports.index = function ( req, res, next ){
-    var user_id = req.cookies ?
-      req.cookies.user_id : undefined;
-
-    Todo.
-      find({ user_id : user_id }).
-      sort( '-updated_at' ).
-      exec( function ( err, todos ){
-//      console.log('Found todos');
-        if( err ) return next( err );
-
-        res.render( 'index', {
-          title : 'Express Todo Example',
-          todos : todos
-        });
-      });
-  };
-
-  moduleExports.create = function ( req, res, next ){
-    new Todo({
-      user_id    : req.cookies.user_id,
-      content    : req.body.content,
-      updated_at : Date.now()
-    }).save( function ( err, todo, count ){
-        if( err ) return next( err );
-
-        res.redirect( '/' );
-      });
-  };
-
-  moduleExports.destroy = function ( req, res, next ){
-    Todo.findById( req.params.id, function ( err, todo ){
-      var user_id = req.cookies ?
-        req.cookies.user_id : undefined;
-
-      if( todo.user_id !== req.cookies.user_id ){
-        var err = new Error("Forbidden");
-        err.statusCode = 403;
-        return next(err);
+    todo.content = req.body.content;
+    todo.user = req.user;
+    todo.save(function(err, savedTodo) {
+      if (err) {
+        req.flash('message', err.message);
+        req.flash('alertType', 'danger');
+        res.redirect(failureRedirect);
       }
-
-      todo.remove( function ( err, todo ){
-        if( err ) return next( err );
-
-        res.redirect( '/' );
-      });
+//      req.flash('message', 'You added that shit!');
+//      req.flash('alertType', 'success');
+      res.redirect(successRedirect);
     });
   };
 
-  moduleExports.edit = function( req, res, next ){
-    var user_id = req.cookies ?
-      req.cookies.user_id : undefined;
+  moduleExports.update = function(req, res, next) {
+    var successRedirect = req.body.successRedirect || '/',
+      failureRedirect = req.body.failureRedirect || '/',
+      paramWhitelist = ['isDone', 'content'],
+      updateParams = _.pick(req.body, paramWhitelist);
 
-    Todo.
-      find({ user_id : user_id }).
-      sort( '-updated_at' ).
-      exec( function ( err, todos ){
-        if( err ) return next( err );
-
-        res.render( 'edit', {
-          title   : 'Express Todo Example',
-          todos   : todos,
-          current : req.params.id
-        });
+    updateParams.isDone = !!updateParams.isDone;
+    todoModel
+      .update({_id: req.params.todoId}, updateParams, function(err, numberAffected, raw) {
+        if (err) {
+          req.flash('message', err.message);
+          req.flash('alertType', 'danger');
+          res.redirect(failureRedirect);
+        }
+//        console.log('The number of updated documents was %d', numberAffected);
+//        console.log('The raw response from Mongo was ', raw);
+//        req.flash('message', 'You updated that shit!');
+//        req.flash('alertType', 'success');
+        res.redirect(successRedirect);
       });
   };
 
-  moduleExports.update = function( req, res, next ){
-    Todo.findById( req.params.id, function ( err, todo ){
-      var user_id = req.cookies ?
-        req.cookies.user_id : undefined;
+  moduleExports.destroy = function(req, res, next) {
+    var successRedirect = req.body.successRedirect || '/',
+      failureRedirect = req.body.failureRedirect || '/';
 
-      if( todo.user_id !== user_id ){
-//      return utils.forbidden( res );
-        var err = new Error("Forbidden");
-        err.statusCode = 403;
-        return next(err);
-      }
-
-      todo.content    = req.body.content;
-      todo.updated_at = Date.now();
-      todo.save( function ( err, todo, count ){
-        if( err ) return next( err );
-
-        res.redirect( '/' );
+    todoModel
+      .findById(req.params.todoId)
+      .remove(function(err, todo) {
+        if (err) {
+          req.flash('message', err.message);
+          req.flash('alertType', 'danger');
+          res.redirect(failureRedirect);
+        }
+//        req.flash('message', 'You deleted that shit!');
+//        req.flash('alertType', 'success');
+        res.redirect(successRedirect);
       });
-    });
-  };
-
-// ** express turns the cookie key to lowercase **
-  moduleExports.current_user = function ( req, res, next ){
-    var user_id = req.cookies ?
-      req.cookies.user_id : undefined;
-    if( !user_id ){
-      res.cookie( 'user_id', uid( 32 ));
-    }
-    next();
   };
 
   return moduleExports;
