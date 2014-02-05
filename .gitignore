@@ -3,3 +3,7 @@ node_modules
 *.sock
 .idea/*
 todo.js
+.env
+.dev_env
+.prod_env
+.sass-cache

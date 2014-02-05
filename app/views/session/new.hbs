@@ -1,6 +1,7 @@
 <div class="row marketing">
     <form role="form" id="signinform" action="/sessions" method="post" accept-charset="utf-8">
         <input type="hidden" name="_method" value="post">
+        {{>shared/csrf}}
         <h1>Sign In</h1>
         <div class="form-group">
             <label for="signinform:username">Email address</label>

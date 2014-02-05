@@ -1,0 +1,88 @@
+<section class="todo-app">
+    <header>
+        <form class="form-inline" id="add-todo" action="users/{{user.id}}/todos/" method="post">
+            <input type="hidden" name="_method" value="post" />
+            {{>shared/csrf}}
+            <label class="sr-only" for="add-todo:content">New todo</label>
+            <input class="form-control todo-content add-todo-content" id="add-todo:content" name="content" type="text" />
+            <button class="btn btn-link btn-lg" type="submit" form="add-todo">
+                <span class="sr-only">Add</span>
+                <span class="glyphicon glyphicon-plus"></span>
+            </button>
+        </form>
+    </header>
+    {{#if todos}}
+        <ul class="list-unstyled">
+            {{#each todos}}
+                <li>
+                    <form id="{{id}}-update" action="users/{{../user.id}}/todos/{{id}}" method="post">
+                        <input type="hidden" name="_method" value="patch" />
+                        <input type="hidden" name="isDone" value="{{#unless isDone}}true{{/unless}}" />
+                        {{#with ..}}{{>shared/csrf}}{{/with}}
+                    </form>
+                    <form id="{{id}}-destroy" action="/users/{{../user.id}}/todos/{{id}}" method="post">
+                        <input type="hidden" name="_method" value="delete">
+                        {{#with ..}}{{>shared/csrf}}{{/with}}
+                    </form>
+                    <button class="btn btn-link btn-lg" type="submit" form="{{id}}-update">
+                        {{#if isDone}}
+                            <span class="sr-only">Mark as undone</span>
+                            <span class="glyphicon glyphicon-ok glyphicon-inverse"></span>
+                        {{else}}
+                            <span class="sr-only">Mark as done</span>
+                            <span class="glyphicon glyphicon-ok"></span>
+                        {{/if}}
+                    </button>
+                    {{#if isDone}}
+                        <strike class="todo-content">{{content}}</strike>
+                    {{else}}
+                        <span class="todo-content">{{content}}</span>
+                    {{/if}}
+                    <button class="btn btn-link btn-lg" type="submit" form="{{id}}-destroy">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        <span class="sr-only">Remove</span>
+                    </button>
+                </li>
+            {{/each}}
+        </ul>
+    {{/if}}
+</section>
+<!--<header id="header">-->
+<!--<h1>todos</h1>-->
+<!--<form id="todo-form" ng-submit="addTodo()">-->
+<!--<input id="new-todo" placeholder="What needs to be done?" ng-model="newTodo" autofocus>-->
+<!--</form>-->
+<!--</header>-->
+<!--<section id="main" ng-show="todos.length" ng-cloak>-->
+<!--<input id="toggle-all" type="checkbox" ng-model="allChecked" ng-click="markAll(allChecked)">-->
+<!--<label for="toggle-all">Mark all as complete</label>-->
+<!--<ul id="todo-list">-->
+<!--<li ng-repeat="todo in todos | filter:statusFilter track by $index" ng-class="{completed: todo.completed, editing: todo == editedTodo}">-->
+<!--<div class="view">-->
+<!--<input class="toggle" type="checkbox" ng-model="todo.completed">-->
+<!--<label ng-dblclick="editTodo(todo)">{{!--todo.title--}}</label>-->
+<!--<button class="destroy" ng-click="removeTodo(todo)"></button>-->
+<!--</div>-->
+<!--<form ng-submit="doneEditing(todo)">-->
+<!--<input class="edit" ng-trim="false" ng-model="todo.title" todo-escape="revertEditing(todo)" ng-blur="doneEditing(todo)" todo-focus="todo == editedTodo">-->
+<!--</form>-->
+<!--</li>-->
+<!--</ul>-->
+<!--</section>-->
+<!--<footer id="footer" ng-show="todos.length" ng-cloak>-->
+<!--<span id="todo-count"><strong>{{!--remainingCount--}}</strong>-->
+<!--<ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }"></ng-pluralize>-->
+<!--</span>-->
+<!--<ul id="filters">-->
+<!--<li>-->
+<!--<a ng-class="{selected: status == ''} " href="#/">All</a>-->
+<!--</li>-->
+<!--<li>-->
+<!--<a ng-class="{selected: status == 'active'}" href="#/active">Active</a>-->
+<!--</li>-->
+<!--<li>-->
+<!--<a ng-class="{selected: status == 'completed'}" href="#/completed">Completed</a>-->
+<!--</li>-->
+<!--</ul>-->
+<!--<button id="clear-completed" ng-click="clearCompletedTodos()" ng-show="completedCount">Clear completed ({{completedCount}})</button>-->
+<!--</footer>-->

@@ -1,6 +1,7 @@
 <div class="row marketing">
     <form role="form" id="signupform" action="/users" method="post" accept-charset="utf-8">
         <input type="hidden" name="_method" value="post">
+        {{>shared/csrf}}
         <h1>Sign Up</h1>
         <!--<h4>Look at the console to see the magic</h4>-->
         <div class="form-group">

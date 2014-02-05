@@ -1,10 +1,16 @@
 'use strict';
 
+var _ = require('lodash'),
+  utils = require('../../lib/middleware/utils');
+
 module.exports = function(Todo) {
   var moduleExports = {};
 
   moduleExports.home = function(req, res, next) {
-    var context = {};
+    var config = req.session.responseConfig = (req.session.responseConfig || {});
+    config.content = config.content || {};
+    config.content.alerts = config.content.alerts || {};
+    config.template = 'staticPages/home';
 
     if (req.isAuthenticated()) {
       Todo.
@@ -12,27 +18,27 @@ module.exports = function(Todo) {
         sort('-createdAt').
         exec(function(err, todos) {
           if (err) {
+            config.content.alerts.main = {
+              msg: 'Oops! Something went wrong.',
+              type: 'danger'
+            };
+            err.status = err.status || 500;
+            err.redirectTo = req.session && req.session.lastPage || '/';
             return next(err);
           }
-          context.todos = todos;
-          console.log(todos);
-          context.todoCreateSuccessRedirect = '/';
-          context.todoCreateFailureRedirect = '/';
-          context.todoUpdateSuccessRedirect = '/';
-          context.todoUpdateeFailureRedirect = '/';
-          context.todoDestroySuccessRedirect = '/';
-          context.todoDestroyFailureRedirect = '/';
-          res.render('staticPages/home', context);
+          config.content.todos = todos;
+          utils.sendResponse(req, res, next);
         });
-    // Technically, this else isn't necessary, but it's more explicit and makes the logic clearer.
+      // Technically, this else isn't necessary, but it's more explicit and makes the logic clearer.
     } else {
-      // Also leaving out the context argument here for clarity.
-      res.render('staticPages/home');
+      utils.sendResponse(req, res, next);
     }
   };
 
   moduleExports.about = function(req, res, next) {
-    res.render('staticPages/about');
+    var config = req.session.responseConfig = (req.session.responseConfig || {});
+    config.template = 'staticPages/about';
+    utils.sendResponse(req, res, next);
   };
 
   return moduleExports;

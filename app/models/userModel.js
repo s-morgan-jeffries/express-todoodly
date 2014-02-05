@@ -1,24 +1,31 @@
 'use strict';
 
-// This makes our User model.
-
 var mongoose = require('mongoose'),
   Schema = mongoose.Schema,
   bcrypt = require('bcrypt'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  validationErrorStatusCode = 422,
+  minPasswordLen = 5,
+  numRounds,
+  seedLength,
+  UserSchema;
 
-var UserSchema = new Schema({
+if (process.env.NODE_ENV === 'production') {
+  //t0d0: Figure out acceptable values for numRounds and seedLength
+  numRounds = 20;
+  seedLength = 50;
+} else {
+  numRounds = 5;
+  seedLength = 10;
+}
+
+UserSchema = new Schema({
   email: {
     type: String,
     unique: true,
     required: true,
     lowercase: true
   },
-//  username: {
-//    type: String,
-//    unique: true,
-//    required: true
-//  },
   passwordHash: {
     type: String
 //    required: true
@@ -32,20 +39,6 @@ var UserSchema = new Schema({
 //  guest: Boolean,
 //  provider: String
 });
-
-var validationErrorStatusCode = 422;
-
-var numRounds,
-  seedLength;
-
-if (process.env.NODE_ENV === 'production') {
-  //t0d0: Figure out acceptable values for numRounds and seedLength
-  numRounds = 20;
-  seedLength = 50;
-} else {
-  numRounds = 5;
-  seedLength = 10;
-}
 
 /**
  * Virtuals
@@ -74,13 +67,6 @@ UserSchema
   .get(function() {
     return this._passwordConfirmation;
   });
-
-//// This is essentially just a convenience function.
-//UserSchema
-//  .virtual('userInfo')
-//  .get(function () {
-//    return { '_id': this._id, 'username': this.username, 'email': this.email };
-//  });
 
 /**
  * Validations
@@ -115,21 +101,6 @@ var validateEmailAvailable = function(email, done) {
   });
 };
 
-//var validateUsernameAvailable = function(username, done) {
-//  mongoose.models.User.findOne({username: username}, function(err, user) {
-//    if(err) {
-//      err.status = err.status || 500;
-//      return done(err);
-//    }
-//    if(user) {
-//      err = new Error('The specified username is already in use');
-//      err.status = validationErrorStatusCode;
-//      return done(err);
-//    }
-//    done();
-//  });
-//};
-
 /**
  * Pre-save hook
  */
@@ -141,18 +112,13 @@ UserSchema.pre('validate', function(next) {
   var pendingValidations = 0,
     allValidationsSubmitted = false,
     isInvalid = false,
-    err,
-    minPasswordLen = 5;
+    err;
 
+  // backburner: Figure out the deal with not validating unless this.isNew
   if (!this.isNew) {
     return next();
   }
 
-//  if (!validatePresenceOf(this.username)) {
-//    err = new Error('Missing username');
-//    err.status = validationErrorStatusCode;
-//    return next(err);
-//  }
   if (!validatePresenceOf(this.email)) {
     err = new Error('Missing email');
     err.status = validationErrorStatusCode;
@@ -169,12 +135,12 @@ UserSchema.pre('validate', function(next) {
     err.status = validationErrorStatusCode;
     return next(err);
   }
-//  if (!validateLengthOf(this.password, {min: minPasswordLen})) {
-//    err = new Error('Password must be at least ' + minPasswordLen + ' characters');
-//    // Give it a bad syntax status code
-//    err.status = validationErrorStatusCode;
-//    return next(err);
-//  }
+  if (!validateLengthOf(this.password, {min: minPasswordLen})) {
+    err = new Error('Password must be at least ' + minPasswordLen + ' characters');
+    // Give it a bad syntax status code
+    err.status = validationErrorStatusCode;
+    return next(err);
+  }
   if (!validatePresenceOf(this.passwordConfirmation)) {
     err = new Error('Missing password confirmation');
     // Give it a bad syntax status code
@@ -201,14 +167,8 @@ UserSchema.pre('validate', function(next) {
     }
   };
 
-  console.log(this.email);
-  console.log(this.password);
-  console.log(this.passwordConfirmation);
-
   pendingValidations += 1;
   validateEmailAvailable(this.email, validationDone);
-//  pendingValidations += 1;
-//  validateUsernameAvailable(this.username, validationDone);
   allValidationsSubmitted = true;
 
   if (allValidationsSubmitted && !pendingValidations) {
@@ -227,28 +187,26 @@ UserSchema.pre('validate', function(next) {
 //https://npmjs.org/package/passport-local-mongoose
 // These are instance methods. Class methods can be created with Schema#statics.
 UserSchema.methods = {
-  // Authenticate - check if the passwords are the same
-  authenticate: function(plainText, done) {
+  // Check if the supplied password matches the stored one
+  checkPassword: function(plainText, done) {
     bcrypt.compare(plainText, this.passwordHash, done);
   }
 };
 
 UserSchema.statics = {
   // function signature of done is function(err, salt, hash)
-  createPasswordHash: function(password, passwordConfirmation, done) {
-    if (password && password === passwordConfirmation) {
-      bcrypt.genSalt(numRounds, seedLength, function(err, salt) {
-        if (err) {
-          err.status = err.status || 500;
-          return done(err);
-        }
-        bcrypt.hash(password, salt, function(err, hash) {
-          done(err, salt, hash);
-        });
+  createPasswordHash: function(password, done) {
+    // Creating the hash requires two steps, performed asynchronously. First we generate a salt.
+    bcrypt.genSalt(numRounds, seedLength, function(err, salt) {
+      if (err) {
+        err.status = err.status || 500;
+        return done(err);
+      }
+      // Then we hash the password with the salt.
+      bcrypt.hash(password, salt, function(err, hash) {
+        done(err, salt, hash);
       });
-    } else {
-      done();
-    }
+    });
   },
 
   // function signature of done is function(err, builtUser)
@@ -257,7 +215,7 @@ UserSchema.statics = {
       password = userProps.password,
       passwordConfirmation = userProps.passwordConfirmation;
 
-    this.createPasswordHash(password, passwordConfirmation, function(err, salt, hash) {
+    this.createPasswordHash(password, function(err, salt, hash) {
       var builtUser,
         userBuildProps = _.clone(userProps);
 

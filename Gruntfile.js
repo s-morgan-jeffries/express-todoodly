@@ -106,7 +106,14 @@ module.exports = function (grunt) {
           'config/**/*.js',
           'lib/**/*.js'
         ],
-        tasks: ['develop', 'delayed-livereload']
+//        tasks: ['develop', 'delayed-livereload'],
+        tasks: ['develop', 'pause:5000'],
+//        tasks: ['express:dev'],
+        options: {
+          livereload: true,
+          interrupt: true,
+          spawn: false //Without this option specified express won't be reloaded,
+        }
       },
       public: {
         files: [
@@ -179,7 +186,7 @@ module.exports = function (grunt) {
   grunt.registerTask('server', [
     'env:dev',
     'develop',
-    'pause:1500',
+    'pause:2500',
     'open',
     'watch'
   ]);

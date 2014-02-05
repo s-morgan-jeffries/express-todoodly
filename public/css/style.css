@@ -5788,7 +5788,7 @@ button.close {
   clear: both;
 }
 
-.center-block, .todo-list {
+.center-block {
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -6467,13 +6467,13 @@ footer {
   text-align: center;
 }
 
-@media screen and (min-width: 480px) {
+@media screen and (min-width: 481px) {
   .pull-left-sm-and-up {
     float: left !important;
   }
 }
 
-@media screen and (min-width: 480px) {
+@media screen and (min-width: 481px) {
   .pull-right-sm-and-up {
     float: right !important;
   }
@@ -6527,6 +6527,18 @@ footer {
   text-decoration: line-through;
 }
 
-.todo-list {
-  width: 300px;
+.todo-app {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.todo-content {
+  font-size: 1.25em;
+  display: inline-block;
+  width: 50%;
+  vertical-align: middle;
+}
+
+.add-todo-content {
+  margin-left: 55px;
 }
