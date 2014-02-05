@@ -22,7 +22,7 @@ module.exports = function (grunt) {
     // Grunt env: This loads environment variables to simulate different environments.
     env: {
       dev: {
-        src: '.env'
+        src: '.dev_env'
       }
     },
 
