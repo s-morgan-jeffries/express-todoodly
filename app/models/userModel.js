@@ -12,8 +12,8 @@ var mongoose = require('mongoose'),
 
 if (process.env.NODE_ENV === 'production') {
   //t0d0: Figure out acceptable values for numRounds and seedLength
-  numRounds = 20;
-  seedLength = 50;
+  numRounds = 10;
+  seedLength = 20;
 } else {
   numRounds = 5;
   seedLength = 10;
@@ -95,6 +95,7 @@ var validateEmailAvailable = function(email, done) {
     if(user) {
       err = new Error('The specified email address is already in use');
       err.status = validationErrorStatusCode;
+      err.field = 'email';
       return done(err);
     }
     done();
@@ -122,35 +123,41 @@ UserSchema.pre('validate', function(next) {
   if (!validatePresenceOf(this.email)) {
     err = new Error('Missing email');
     err.status = validationErrorStatusCode;
+    err.field = 'email';
     return next(err);
   }
   if (!isEmail(this.email)) {
     err = new Error('The specified email is invalid.');
     err.status = validationErrorStatusCode;
+    err.field = 'email';
     return next(err);
   }
   if (!validatePresenceOf(this.password)) {
     err = new Error('Missing password');
     // Give it a bad syntax status code
     err.status = validationErrorStatusCode;
+    err.field = 'password';
     return next(err);
   }
   if (!validateLengthOf(this.password, {min: minPasswordLen})) {
     err = new Error('Password must be at least ' + minPasswordLen + ' characters');
     // Give it a bad syntax status code
     err.status = validationErrorStatusCode;
+    err.field = 'password';
     return next(err);
   }
   if (!validatePresenceOf(this.passwordConfirmation)) {
     err = new Error('Missing password confirmation');
     // Give it a bad syntax status code
     err.status = validationErrorStatusCode;
+    err.field = 'passwordConfirmation';
     return next(err);
   }
   if (this.password !== this.passwordConfirmation) {
     err = new Error('Password confirmation does not match password');
     // Give it a bad syntax status code
     err.status = validationErrorStatusCode;
+    err.field = 'passwordConfirmation';
     return next(err);
   }
   // asynchronous validations

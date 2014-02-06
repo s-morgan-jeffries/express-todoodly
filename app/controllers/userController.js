@@ -21,7 +21,6 @@ module.exports = function(User, mongoose) {
   moduleExports.neu = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'user/new';
-//    utils.sendResponse(req, res, next);
     next();
   };
 
@@ -29,7 +28,6 @@ module.exports = function(User, mongoose) {
   moduleExports.show = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'user/show';
-//    utils.sendResponse(req, res, next);
     next();
   };
 
@@ -60,9 +58,9 @@ module.exports = function(User, mongoose) {
 
       newUser.save(function(err) {
         if (err) {
-          if (err.name === 'ValidationError') {
-            config.content.alerts.main = {
-              msg: 'Validation error. (You should update this message.)',
+          if (err.name === 'ValidationError' || err.status === 422) {
+            config.content.alerts[err.field] = {
+              msg: err.message,
               type: 'danger'
             };
             err.status = err.status || 422;
@@ -89,7 +87,7 @@ module.exports = function(User, mongoose) {
             return next(err);
           }
           // Send a message to the user that this worked
-          config.alerts.main = {
+          config.content.alerts.main = {
             msg: 'Account created successfully!',
             type: 'success'
           };

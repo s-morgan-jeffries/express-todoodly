@@ -3,9 +3,7 @@
 module.exports = (function() {
   var moduleExports = {};
 
-  moduleExports.db = {
-    url: 'mongodb://localhost/express-todo'
-  };
+  moduleExports.db = require('./db');
 
   return moduleExports;
 })();

@@ -10,7 +10,6 @@ module.exports = function(passport) {
   moduleExports.neu = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'session/new';
-//    utils.sendResponse(req, res, next);
     next();
   };
 
@@ -29,9 +28,7 @@ module.exports = function(passport) {
           msg: 'Oops! Something went wrong.',
           type: 'danger'
         };
-//        config.status = err.status = err.status || 500;
         err.status = err.status || 500;
-//        config.template = 'session/new';
           err.redirectTo = req.session && req.session.lastPage || '/';
         return next(err);
       }
@@ -46,37 +43,26 @@ module.exports = function(passport) {
               type: 'danger'
             };
             err = new Error(info.errors.email.message);
-//            config.status = err.status = 401;
             err.status = 401;
-//            err.redirectTo = '/signin';
             err.redirectTo = req.session && req.session.lastPage || '/';
-//            config.template = 'session/new';
             return next(err);
-//            return res.redirect('/signin');
           } else if (info.errors.password) {
             config.content.alerts.password = {
               msg: info.errors.password.message,
               type: 'danger'
             };
             err = new Error(info.errors.password.message);
-//            config.status = err.status = 401;
             err.status = 401;
-//            err.redirectTo = '/signin';
             err.redirectTo = req.session && req.session.lastPage || '/';
-//            config.template = 'session/new';
             return next(err);
-//            return res.redirect('/signin');
           }
         } else {
-//          config.status = 401;
           config.content.alerts.main = {
             msg: '401: Unknown authentication error',
             type: 'danger'
           };
           err = new Error('401: Unknown authentication error');
-//          config.status = err.status = 401;
           err.status = 401;
-//          config.template = 'session/new';
           err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
@@ -95,9 +81,7 @@ module.exports = function(passport) {
             msg: 'Oops! Something went wrong.',
             type: 'danger'
           };
-//          config.status = err.status = err.status || 500;
           err.status = err.status || 500;
-//          config.template = 'session/new';
           err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
@@ -108,9 +92,7 @@ module.exports = function(passport) {
               msg: 'Oops! Something went wrong.',
               type: 'danger'
             };
-//            config.status = err.status = err.status || 500;
             err.status = err.status || 500;
-//            config.template = 'session/new';
             err.redirectTo = req.session && req.session.lastPage || '/';
             return next(err);
           }
@@ -140,9 +122,7 @@ module.exports = function(passport) {
             msg: 'Oops! Something went wrong.',
             type: 'danger'
           };
-//          config.status = err.status = err.status || 500;
           err.status = err.status || 500;
-//          config.template = 'staticPages/home';
           err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
@@ -151,14 +131,8 @@ module.exports = function(passport) {
     } else {
       // Is this really necessary? Probably for logging purposes, since the logout form shouldn't even be exposed unless
       // you're logged in. I'll leave it in for now.
-//      config.content.alerts.main = {
-//        msg: 'Oops! Something went wrong.',
-//        type: 'warning'
-//      };
       var err = new Error('Not logged in');
-//      config.status = err.status = 401;
       err.status = 401;
-//      config.template = 'staticPages/home';
       err.redirectTo = req.session && req.session.lastPage || '/';
       next(err);
     }

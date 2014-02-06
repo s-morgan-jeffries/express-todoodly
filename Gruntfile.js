@@ -11,8 +11,35 @@ module.exports = function (grunt) {
 
   var reloadPort = 35729, files;
 
+//  var runShellCommand = function(commandName, command, options) {
+//    options = options || {
+//      stdout: true
+//    };
+//    grunt.config.data.shell[commandName] = {
+//      options: options,
+//      command: command
+//    };
+//    grunt.task.run('shell:' + commandName);
+//  };
+
   grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
+
+//    bower: {
+//      heroku: {
+//        options: {
+//          targetDir: './heroku/public/components',
+////          layout: 'byType',
+//          layout: 'byComponent',
+//          install: true,
+//          verbose: true,
+//          cleanTargetDir: false,
+//          cleanBowerDir: false,
+//          bowerOptions: {
+////            production: true
+//          }
+//        }
+//      }
+//    },
 
     clean: {
       heroku: {
@@ -22,7 +49,8 @@ module.exports = function (grunt) {
             'heroku/*',
             '!heroku/.git*',
             '!heroku/Procfile',
-            '!heroku/.env'
+            '!heroku/.env',
+            '!heroku/.bowerrc'
           ]
         }]
       }
@@ -36,9 +64,12 @@ module.exports = function (grunt) {
             cwd: '.',
             dest: 'heroku',
             src: [
+              'server.js',
               'app/**/*',
               'config/**/*',
-              'lib/**/*'
+              'lib/**/*',
+              'package.json',
+              'bower.json'
             ]
           },
           {
@@ -133,6 +164,8 @@ module.exports = function (grunt) {
         url: 'http://localhost:' + (process.env.PORT || 3000)
       }
     },
+
+    pkg: grunt.file.readJSON('package.json'),
 
 // Sass (duh)
     sass: {
@@ -229,6 +262,25 @@ module.exports = function (grunt) {
   files = grunt.config('watch.server.files');
   files = grunt.file.expand(files);
 
+  grunt.registerTask('bower', function(target) {
+    var taskConfig = {
+      heroku: {
+        command: 'bower install --production',
+        options: {
+          stdout: true,
+          execOptions: {
+            cwd: 'heroku'
+          }
+        }
+      }
+    };
+    if (target in taskConfig) {
+      grunt.config.data.shell = grunt.config.data.shell || {};
+      grunt.config.data.shell.bower = taskConfig[target];
+      grunt.task.run('shell:bower');
+    }
+  });
+
   grunt.registerTask('delayed-livereload', 'Live reload after the node server has restarted.', function () {
     var done = this.async();
     setTimeout(function () {
@@ -253,18 +305,29 @@ module.exports = function (grunt) {
     }, duration);
   });
 
-  grunt.registerTask('server', [
-    'env:dev',
-    'develop',
-    'pause:2500',
-    'open',
-    'watch'
-  ]);
+  grunt.registerTask('server', function(target) {
+    var targetTask;
+    if (target && target === 'heroku') {
+      targetTask = [
+        'env:heroku'
+      ];
+    } else {
+      targetTask = [
+        'env:dev',
+        'develop',
+        'pause:2500',
+        'open',
+        'watch'
+      ];
+    }
+    grunt.task.run(targetTask);
+  });
 
   grunt.registerTask('heroku', [
     'clean:heroku',
     'sass:build',
-    'copy:heroku'
+    'copy:heroku',
+    'bower:heroku'
   ]);
 
   // This just delegates to the jasmine_node task. For future reference, this is how you should set up testing on the

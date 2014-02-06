@@ -8,15 +8,23 @@
             <label for="signupform:email">Email address</label>
             <input type="email" class="form-control" id="signupform:email" name="email" placeholder="Enter email" autofocus/>
         </div>
+        {{#if alerts.email}}
+            <div class="alert alert-{{alerts.email.type}}">{{alerts.email.msg}}</div>
+        {{/if}}
         <div class="form-group">
             <label for="signupform:password">Password</label>
             <input type="password" class="form-control" id="signupform:password" name="password" placeholder="Enter password" />
-
         </div>
+        {{#if alerts.password}}
+            <div class="alert alert-{{alerts.password.type}}">{{alerts.password.msg}}</div>
+        {{/if}}
         <div class="form-group">
             <label for="signupform:password-confirmation">Confirm password</label>
             <input type="password" class="form-control" id="signupform:password-confirmation" name="passwordConfirmation" placeholder="Re-enter password"/>
         </div>
+        {{#if alerts.passwordConfirmation}}
+            <div class="alert alert-{{alerts.passwordConfirmation.type}}">{{alerts.passwordConfirmation.msg}}</div>
+        {{/if}}
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>

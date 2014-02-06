@@ -19,7 +19,7 @@ module.exports = function(app) {
   app.delete('/signout', controllers.sessionController.destroy);
 
   // User controller actions
-  app.get('/signup', utils.saveAsLastPage, controllers.userController.neu, utils.sendResponse);
+  app.get('/signup', auth.isNotAuthenticated, utils.saveAsLastPage, controllers.userController.neu, utils.sendResponse);
   app.post('/users', controllers.userController.create);
   app.get('/users/:userId', auth.isAuthenticated, auth.user.isAuthorized, utils.saveAsLastPage, controllers.userController.show, utils.sendResponse);
 
