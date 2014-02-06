@@ -13,6 +13,61 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+
+    clean: {
+      heroku: {
+        files: [{
+          dot: true,
+          src: [
+            'heroku/*',
+            '!heroku/.git*',
+            '!heroku/Procfile',
+            '!heroku/.env'
+          ]
+        }]
+      }
+    },
+
+    copy: {
+      heroku: {
+        files: [
+          {
+            expand: true,
+            cwd: '.',
+            dest: 'heroku',
+            src: [
+              'app/**/*',
+              'config/**/*',
+              'lib/**/*'
+            ]
+          },
+          {
+            expand: true,
+            cwd: 'public',
+            dest: 'heroku/public',
+            src: [
+              'img/**/*',
+              'js/**/*',
+              'css/*.css'
+            ]
+          }
+//          {
+//            expand: true,
+//            dot: true,
+//            cwd: '<%= yeoman.devPublic %>',
+//            dest: '<%= yeoman.tempPublic %>',
+//            src: [
+//              '*.{ico,png,txt}',
+//              '.htaccess',
+//              'bower_components/**/*',
+//              'images/{,*/}*.{gif,webp}',
+//              'fonts/*'
+//            ]
+//          }
+        ]
+      }
+    },
+
     develop: {
       server: {
         file: 'server.js'
@@ -23,27 +78,30 @@ module.exports = function (grunt) {
     env: {
       dev: {
         src: '.dev_env'
+      },
+      heroku: {
+        src: 'heroku/.env'
       }
     },
 
     jasmineNode: {
       options: {
         // Available options:
-          // specFolders: Array of strings, will be searched for specs. Default: []
-          // projectRoot: String, will be appended to specFolders. Default: '.'
-          // source: String. Default: "src"
-          // specNameMatcher: String. Default: "spec"
-          // extensions: String. Default: "js"
-          // match: String. Default: "."
-          // teamcity: Boolean. Default: false
-          // useRequireJs: Boolean. Default: false
-          // matchall: Boolean. Default: false
-          // autotest: Boolean. Default: false
-          // useHelpers: Boolean. Default: false
-          // forceExit: Boolean. Default: false
-          // useCoffee: Boolean. Default: false
-          // isVerbose: Boolean. Default: true
-          // showColors: Boolean. Default: true
+        // specFolders: Array of strings, will be searched for specs. Default: []
+        // projectRoot: String, will be appended to specFolders. Default: '.'
+        // source: String. Default: "src"
+        // specNameMatcher: String. Default: "spec"
+        // extensions: String. Default: "js"
+        // match: String. Default: "."
+        // teamcity: Boolean. Default: false
+        // useRequireJs: Boolean. Default: false
+        // matchall: Boolean. Default: false
+        // autotest: Boolean. Default: false
+        // useHelpers: Boolean. Default: false
+        // forceExit: Boolean. Default: false
+        // useCoffee: Boolean. Default: false
+        // isVerbose: Boolean. Default: true
+        // showColors: Boolean. Default: true
         specNameMatcher: "Spec", // load only specs containing specNameMatcher
 //      specFolders: ['./test/spec'],
 //        projectRoot: './test/spec',
@@ -78,6 +136,18 @@ module.exports = function (grunt) {
 
 // Sass (duh)
     sass: {
+      build: {
+        options: {
+          style: 'expanded'
+        },
+        files: [{
+          expand: true,
+          cwd: 'public/css',
+          src: ['*.scss'],
+          dest: 'public/css',
+          ext: '.css'
+        }]
+      },
       devServe: {
         options: {
           style: 'expanded'
@@ -189,6 +259,12 @@ module.exports = function (grunt) {
     'pause:2500',
     'open',
     'watch'
+  ]);
+
+  grunt.registerTask('heroku', [
+    'clean:heroku',
+    'sass:build',
+    'copy:heroku'
   ]);
 
   // This just delegates to the jasmine_node task. For future reference, this is how you should set up testing on the

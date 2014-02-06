@@ -21,14 +21,16 @@ module.exports = function(User, mongoose) {
   moduleExports.neu = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'user/new';
-    utils.sendResponse(req, res, next);
+//    utils.sendResponse(req, res, next);
+    next();
   };
 
   // User profile page
   moduleExports.show = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'user/show';
-    utils.sendResponse(req, res, next);
+//    utils.sendResponse(req, res, next);
+    next();
   };
 
   // Create a new user (via post request)

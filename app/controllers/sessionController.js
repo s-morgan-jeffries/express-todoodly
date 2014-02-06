@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../lib/middleware/utils');
+var utils = require('../../lib/middleware/utils'),
+  _ = require('lodash');
 
 module.exports = function(passport) {
   var moduleExports = {};
@@ -9,7 +10,8 @@ module.exports = function(passport) {
   moduleExports.neu = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'session/new';
-    utils.sendResponse(req, res, next);
+//    utils.sendResponse(req, res, next);
+    next();
   };
 
   // Logs the user in (in response to a post request).
@@ -23,8 +25,15 @@ module.exports = function(passport) {
     passport.authenticate('local', function(err, user, info) {
       // This means there was a server error.
       if (err) {
-        err.status = error.status || 500;
-        return next(error);
+        config.content.alerts.main = {
+          msg: 'Oops! Something went wrong.',
+          type: 'danger'
+        };
+//        config.status = err.status = err.status || 500;
+        err.status = err.status || 500;
+//        config.template = 'session/new';
+          err.redirectTo = req.session && req.session.lastPage || '/';
+        return next(err);
       }
       // This means there was an authentication error. This will need to be handled differently when I start doing AJAX
       // requests.
@@ -32,24 +41,29 @@ module.exports = function(passport) {
         // If we have info on what went wrong, send the user back to the signin page with a flash message.
         if (info && info.errors) {
           if (info.errors.email) {
-            config.content.alerts.main = {
+            config.content.alerts.email = {
               msg: info.errors.email.message,
               type: 'danger'
             };
             err = new Error(info.errors.email.message);
+//            config.status = err.status = 401;
             err.status = 401;
-            err.redirectTo = '/signin';
+//            err.redirectTo = '/signin';
+            err.redirectTo = req.session && req.session.lastPage || '/';
+//            config.template = 'session/new';
             return next(err);
-            // backburner: Update this so we're redirecting back to the last page visited.
 //            return res.redirect('/signin');
           } else if (info.errors.password) {
-            config.content.alerts.main = {
+            config.content.alerts.password = {
               msg: info.errors.password.message,
               type: 'danger'
             };
             err = new Error(info.errors.password.message);
+//            config.status = err.status = 401;
             err.status = 401;
-            err.redirectTo = '/signin';
+//            err.redirectTo = '/signin';
+            err.redirectTo = req.session && req.session.lastPage || '/';
+//            config.template = 'session/new';
             return next(err);
 //            return res.redirect('/signin');
           }
@@ -60,29 +74,48 @@ module.exports = function(passport) {
             type: 'danger'
           };
           err = new Error('401: Unknown authentication error');
+//          config.status = err.status = 401;
           err.status = 401;
-          err.redirectTo = '/signin';
+//          config.template = 'session/new';
+          err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
-//          return res.redirect('/signin');
         }
 
       }
       // This is used to establish a login session. The code for this is in passport/lib/passport/http/request.js. It adds
       // a 'user' key to the session store. It also adds a user to the request object (the SessionStrategy handles
       // re-populating req.user on each request).
-      //backburner: Update this to use req.session.regenerate (so the session id changes when you log in).
-          // Might need to review security to see if this is really necessary
-      req.logIn(user, function(err) {
+      //t0d0: Update this to use req.session.regenerate (so the session id changes when you log in).
+          // You'll need to transfer any session values to the new session
+
+      var sessionStore = req.session;
+      req.session.regenerate(function(err) {
         if (err) {
           config.content.alerts.main = {
             msg: 'Oops! Something went wrong.',
             type: 'danger'
           };
+//          config.status = err.status = err.status || 500;
           err.status = err.status || 500;
+//          config.template = 'session/new';
           err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
-        res.redirect('/');
+        _.defaults(req.session, sessionStore);
+        req.logIn(user, function(err) {
+          if (err) {
+            config.content.alerts.main = {
+              msg: 'Oops! Something went wrong.',
+              type: 'danger'
+            };
+//            config.status = err.status = err.status || 500;
+            err.status = err.status || 500;
+//            config.template = 'session/new';
+            err.redirectTo = req.session && req.session.lastPage || '/';
+            return next(err);
+          }
+          res.redirect('/');
+        });
       });
       // passport.authenticate() actually returns a function, and normally that function is used as route middleware. It's
       // not done that way here, so we have to call it explicitly.
@@ -107,7 +140,9 @@ module.exports = function(passport) {
             msg: 'Oops! Something went wrong.',
             type: 'danger'
           };
+//          config.status = err.status = err.status || 500;
           err.status = err.status || 500;
+//          config.template = 'staticPages/home';
           err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
@@ -116,8 +151,14 @@ module.exports = function(passport) {
     } else {
       // Is this really necessary? Probably for logging purposes, since the logout form shouldn't even be exposed unless
       // you're logged in. I'll leave it in for now.
+//      config.content.alerts.main = {
+//        msg: 'Oops! Something went wrong.',
+//        type: 'warning'
+//      };
       var err = new Error('Not logged in');
+//      config.status = err.status = 401;
       err.status = 401;
+//      config.template = 'staticPages/home';
       err.redirectTo = req.session && req.session.lastPage || '/';
       next(err);
     }

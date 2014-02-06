@@ -27,17 +27,17 @@ module.exports = function(todoModel) {
     todo.save(function(err, savedTodo) {
       if (err) {
         config.content.alerts.main = {
-          msg: err.message,
+          msg: 'Oops. Something went wrong.',
           type: 'danger'
         };
         err.status = err.status || 500;
         err.redirectTo = req.session && req.session.lastPage || '/';
         return next(err);
       }
-      config.content.alerts.main = {
-        msg: 'You created that shit!',
-        type: 'success'
-      };
+//      config.content.alerts.main = {
+//        msg: 'You created that shit!',
+//        type: 'success'
+//      };
       res.redirect(req.session.lastPage);
     });
   };
@@ -56,7 +56,7 @@ module.exports = function(todoModel) {
       .update({_id: req.params.todoId}, updateParams, function(err, numberAffected, raw) {
         if (err) {
           config.content.alerts.main = {
-            msg: err.message,
+            msg: 'Oops. Something went wrong.',
             type: 'danger'
           };
           err.status = err.status || 500;
@@ -78,7 +78,7 @@ module.exports = function(todoModel) {
       .remove(function(err, todo) {
         if (err) {
           config.content.alerts.main = {
-            msg: err.message,
+            msg: 'Oops. Something went wrong.',
             type: 'danger'
           };
           err.status = err.status || 500;

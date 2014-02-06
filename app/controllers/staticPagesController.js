@@ -27,18 +27,21 @@ module.exports = function(Todo) {
             return next(err);
           }
           config.content.todos = todos;
-          utils.sendResponse(req, res, next);
+//          utils.sendResponse(req, res, next);
+          return next();
         });
       // Technically, this else isn't necessary, but it's more explicit and makes the logic clearer.
     } else {
-      utils.sendResponse(req, res, next);
+      return next();
+//      utils.sendResponse(req, res, next);
     }
   };
 
   moduleExports.about = function(req, res, next) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.template = 'staticPages/about';
-    utils.sendResponse(req, res, next);
+//    utils.sendResponse(req, res, next);
+    next();
   };
 
   return moduleExports;
