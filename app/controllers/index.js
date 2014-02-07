@@ -8,13 +8,12 @@ var fs = require('fs'),
 module.exports = (function() {
   var moduleExports = {};
 
-  moduleExports.staticPagesController = require('./staticPagesController')(mongoose.model('Todo'));
-
-  moduleExports.sessionController = require('./sessionController')(passport);
-
-  moduleExports.userController = require('./userController')(mongoose.model('User'), mongoose);
-
-  moduleExports.todoController = require('./todoController')(mongoose.model('Todo'));
+  moduleExports.init = function() {
+    this.sessionController = require('./sessionController')(passport);
+    this.staticPagesController = require('./staticPagesController')(mongoose.model('Todo'));
+    this.todoController = require('./todoController')(mongoose.model('Todo'));
+    this.userController = require('./userController')(mongoose.model('User'), mongoose);
+  };
 
   return moduleExports;
 })();

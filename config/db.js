@@ -1,14 +1,4 @@
-var mongoose = require( 'mongoose' );
-//var fs = require('fs');
-//var Schema   = mongoose.Schema;
-//
-//var Todo = new Schema({
-//  user_id    : String,
-//  content    : String,
-//  updated_at : Date
-//});
-//
-//mongoose.model( 'Todo', Todo );
+var mongoose = require('mongoose');
 
 module.exports = (function() {
   var moduleExports = {};
@@ -27,7 +17,9 @@ module.exports = (function() {
     }
   };
 
-  mongoose.connect(moduleExports.url);
+  moduleExports.init = function() {
+    mongoose.connect(moduleExports.url);
+  };
 
   return moduleExports;
 })();
