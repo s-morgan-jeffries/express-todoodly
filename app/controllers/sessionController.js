@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../lib/middleware/utils'),
+var utilMware = require('../../lib/middleware/utils'),
+  utils = require('../../lib/utils'),
   _ = require('lodash');
 
 module.exports = function(passport) {
@@ -18,85 +19,91 @@ module.exports = function(passport) {
     var config = req.session.responseConfig = (req.session.responseConfig || {});
     config.content = config.content || {};
     config.content.alerts = config.content.alerts || {};
+
+    // I found I was repeating this pattern a lot, so I abstracted it into this function. This takes an Error instance
+    // (that has optionally been modified with additional properties) and uses it to construct an alert (which will
+    // ultimately be rendered as part of the signin form). It then passes the error to next().
+    var alertAndReturnErr = function(e) {
+//      console.log(e);
+      config.content.alerts[e.field || 'main'] = {
+        msg: e.userMsg || e.message,
+        type: 'danger'
+      };
+      e.redirectTo = req.session && req.session.lastPage || '/';
+      return next(e);
+    };
+
+    // Validation of our parameters has to happen before the call to passport.authenticate (otherwise, we just get a
+    // relatively uninformative error that the credentials are missing).
+    var valErr,
+      email = req.body.email,
+      password = req.body.password;
+    // No email address provided
+    if (!email) {
+      valErr = new Error('No email provided');
+      valErr.status = 401;
+      valErr.field = 'email';
+      valErr.userMsg = 'Must provide a valid email.';
+      return alertAndReturnErr(valErr);
+    }
+    // Invalid email address
+    if (!utils.isEmail(email)) {
+      valErr = new Error('Invalid email provided');
+      valErr.status = 401;
+      valErr.field = 'email';
+      valErr.userMsg = 'Must provide a valid email.';
+      return alertAndReturnErr(valErr);
+    }
+    // No password provided
+    if (!password) {
+      valErr = new Error('No password provided');
+      valErr.status = 401;
+      valErr.field = 'password';
+      valErr.userMsg = 'Must provide a password.';
+      return alertAndReturnErr(valErr);
+    }
+
     // This will authenticate using the LocalStrategy defined in the passport configuration module. The 'local' argument
     // tells it to use that strategy. The callback that follows is invoked once authentication is complete (it's the
     // done callback).
     passport.authenticate('local', function(err, user, info) {
       // This means there was a server error.
       if (err) {
-        config.content.alerts.main = {
-          msg: 'Oops! Something went wrong.',
-          type: 'danger'
-        };
         err.status = err.status || 500;
-          err.redirectTo = req.session && req.session.lastPage || '/';
-        return next(err);
+        err.userMsg = 'Oops! Something went wrong.';
+        return alertAndReturnErr(err);
       }
       // This means there was an authentication error. This will need to be handled differently when I start doing AJAX
       // requests.
       if (!user) {
         // If we have info on what went wrong, send the user back to the signin page with a flash message.
-        if (info && info.errors) {
-          if (info.errors.email) {
-            config.content.alerts.email = {
-              msg: info.errors.email.message,
-              type: 'danger'
-            };
-            err = new Error(info.errors.email.message);
-            err.status = 401;
-            err.redirectTo = req.session && req.session.lastPage || '/';
-            return next(err);
-          } else if (info.errors.password) {
-            config.content.alerts.password = {
-              msg: info.errors.password.message,
-              type: 'danger'
-            };
-            err = new Error(info.errors.password.message);
-            err.status = 401;
-            err.redirectTo = req.session && req.session.lastPage || '/';
-            return next(err);
-          }
+        if (info) {
+          return alertAndReturnErr(info);
         } else {
-          config.content.alerts.main = {
-            msg: '401: Unknown authentication error',
-            type: 'danger'
-          };
-          err = new Error('401: Unknown authentication error');
+          err = new Error('Unknown authentication error');
           err.status = 401;
-          err.redirectTo = req.session && req.session.lastPage || '/';
-          return next(err);
+          return alertAndReturnErr(err);
         }
-
       }
       // This is used to establish a login session. The code for this is in passport/lib/passport/http/request.js. It adds
       // a 'user' key to the session store. It also adds a user to the request object (the SessionStrategy handles
       // re-populating req.user on each request).
-      //t0d0: Update this to use req.session.regenerate (so the session id changes when you log in).
-          // You'll need to transfer any session values to the new session
-
       var sessionStore = req.session;
       req.session.regenerate(function(err) {
         if (err) {
-          config.content.alerts.main = {
-            msg: 'Oops! Something went wrong.',
-            type: 'danger'
-          };
           err.status = err.status || 500;
-          err.redirectTo = req.session && req.session.lastPage || '/';
-          return next(err);
+          err.userMsg = 'Oops! Something went wrong.';
+          return alertAndReturnErr(err);
         }
         _.defaults(req.session, sessionStore);
         req.logIn(user, function(err) {
           if (err) {
-            config.content.alerts.main = {
-              msg: 'Oops! Something went wrong.',
-              type: 'danger'
-            };
             err.status = err.status || 500;
-            err.redirectTo = req.session && req.session.lastPage || '/';
-            return next(err);
+            err.userMsg = 'Oops! Something went wrong.';
+            return alertAndReturnErr(err);
           }
-          res.redirect('/');
+          res.redirect(req.session.postLoginRedirect || '/');
+          delete req.session.postLoginRedirect;
         });
       });
       // passport.authenticate() actually returns a function, and normally that function is used as route middleware. It's

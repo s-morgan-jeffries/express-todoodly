@@ -28,7 +28,7 @@ models.init();
 controllers.init();
 
 // Configure views
-views.config(app);
+views.init(app);
 
 // Body parsing and method override
 app.use(express.json());
@@ -38,11 +38,11 @@ app.use(express.urlencoded());
 // restricted set of values, and those often don't include DELETE or PUT.
 app.use(express.methodOverride());
 
-// Configure sessions
-sessions.config(app);
+// Initialize sessions
+sessions.init(app);
 
-// Configure passport (has to come after sessions)
-passport.config(app);
+// Initialize passport (has to come after sessions)
+passport.init(app);
 
 // CSRF (has to come after sessions)
 app.use(express.csrf());
@@ -51,7 +51,7 @@ app.use(express.csrf());
 app.use(utils.initResponseConfig);
 
 // Configure the routes
-routes.config(app);
+routes.init(app);
 
 // Error handling should come after almost everything else.
 app.use(errorHandler());

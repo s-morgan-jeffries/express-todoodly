@@ -11,35 +11,7 @@ module.exports = function (grunt) {
 
   var reloadPort = 35729, files;
 
-//  var runShellCommand = function(commandName, command, options) {
-//    options = options || {
-//      stdout: true
-//    };
-//    grunt.config.data.shell[commandName] = {
-//      options: options,
-//      command: command
-//    };
-//    grunt.task.run('shell:' + commandName);
-//  };
-
   grunt.initConfig({
-
-//    bower: {
-//      heroku: {
-//        options: {
-//          targetDir: './heroku/public/components',
-////          layout: 'byType',
-//          layout: 'byComponent',
-//          install: true,
-//          verbose: true,
-//          cleanTargetDir: false,
-//          cleanBowerDir: false,
-//          bowerOptions: {
-////            production: true
-//          }
-//        }
-//      }
-//    },
 
     clean: {
       heroku: {
@@ -82,19 +54,6 @@ module.exports = function (grunt) {
               'css/*.css'
             ]
           }
-//          {
-//            expand: true,
-//            dot: true,
-//            cwd: '<%= yeoman.devPublic %>',
-//            dest: '<%= yeoman.tempPublic %>',
-//            src: [
-//              '*.{ico,png,txt}',
-//              '.htaccess',
-//              'bower_components/**/*',
-//              'images/{,*/}*.{gif,webp}',
-//              'fonts/*'
-//            ]
-//          }
         ]
       }
     },
@@ -237,24 +196,6 @@ module.exports = function (grunt) {
         files: ['public/css/**/*.{scss,sass}'],
         tasks: ['sass:devServe']
       }
-//      js: {
-//        files: ['public/js/*.js'],
-//        options: {
-//          livereload: reloadPort
-//        }
-//      },
-//      css: {
-//        files: ['public/css/*.css'],
-//        options: {
-//          livereload: reloadPort
-//        }
-//      },
-//      jade: {
-//        files: ['views/*.jade'],
-//        options: {
-//          livereload: reloadPort
-//        }
-//      }
     }
   });
 

@@ -2,12 +2,14 @@
 
 var mongoose = require('mongoose'),
   passport = require('passport'),
-  LocalStrategy = require('passport-local').Strategy;
+  LocalStrategy = require('passport-local').Strategy,
+  utils = require('../lib/utils');
 
 module.exports = (function() {
   var moduleExports = {};
 
-  moduleExports.config = function(app) {
+
+  moduleExports.init = function(app) {
 
     var User = mongoose.model('User');
 
@@ -16,7 +18,11 @@ module.exports = (function() {
     //    Done(error, user, info)
     // where error indicates an internal error, user is the user, and info is a object with info about an authentication
     // failure.
+    // NB: Passport will call done(null, false, info) *before* calling the verifyCallback if there are missing
+    // credentials. I'm getting around this by doing basic validation in the sessionsController.
     var verifyCallback = function(email, password, done) {
+      var info;
+
       // We try to find a user whose email (username) matches the one provided.
       User.findOne({email: email}, function (err, user) {
         // If there's an error, pass it to the done callback.
@@ -28,28 +34,24 @@ module.exports = (function() {
         // exists. Unclear, but might need to change this to reflect that. Anyway, this is for the situation where the
         // user just wasn't found.
         if (!user) {
-          return done(null, false, {
-            'errors': {
-              'email': { 'message': 'Email is not registered.' }
-            }
-          });
+          info = new Error('User not found');
+          info.status = 401;
+          info.field = 'email';
+          return done(null, false, info);
         }
-        // If the user was found, we can call the authenticate method. If it returns true, we have a match. If not, it's
-        // an authetication failure.
-        // NB: If you switch to an asynchronous authentication method (like the one in pwd), you'll need to rewrite this
-        // to account for that.
+        // If the user was found, we can check the password to see if it matches.
         user.checkPassword(password, function(err, passwordMatches) {
           if (err) {
-            return next(err);
+            err.status = err.status || 500;
+            return done(err);
           }
           if (!passwordMatches) {
-            return done(null, false, {
-              'errors': {
-                'password': { 'message': 'Password is incorrect.' }
-              }
-            });
+            info = new Error('Incorrect password');
+            info.status = 401;
+            info.field = 'password';
+            return done(null, false, info);
           }
-          // Authentication failures would have returned by this point, so we must have a good username/password pair.
+          // If we've gotten this far, it means we have a good username/password pair.
           return done(null, user);
         });
       });
