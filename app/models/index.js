@@ -10,7 +10,7 @@ module.exports = (function() {
     var modelsPath = path.resolve(__dirname);
     fs.readdirSync(modelsPath).forEach(function (file) {
       // Runs all the model files as scripts
-      if (!(file === 'index.js')) {
+      if (file !== 'index.js') {
         require(modelsPath + '/' + file);
       }
     });

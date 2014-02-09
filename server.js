@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express'),
   app = express(),
   http = require('http'),
@@ -12,7 +14,7 @@ var express = require('express'),
   passport = require('./config/passport'),
   initResponseConfig = require('./lib/middleware/utils').initResponseConfig,
   errorHandler = require('./lib/middleware/errorHandler'),
-  debug = require('./lib/middleware/debug'),
+//  debug = require('./lib/middleware/debug'),
   DEFAULT_PORT = 3000;
 
 
@@ -61,6 +63,6 @@ app.use(errorHandler);
 //////////////////// Server creation ////////////////////
 // Create the server
 http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+  console.log('Express server listening on port ' + app.get('port'));
 });
 //////////////////// Server creation ////////////////////

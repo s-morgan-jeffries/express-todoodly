@@ -1,3 +1,5 @@
+'use strict';
+
 var path = require('path'),
   express = require('express'),
   controllers = require('../app/controllers'),
@@ -6,7 +8,7 @@ var path = require('path'),
 
 
 var redirectTo = function(url) {
-  return function(req, res, next) {
+  return function(req, res/*, next*/) {
     res.redirect(url);
   };
 };
@@ -27,7 +29,7 @@ var configRoutes = function(app) {
   // User controller actions
   app.get('/signup', auth.isNotAuthenticated, utils.saveAsLastPage, controllers.userController.neu, utils.sendResponse);
   app.post('/users', controllers.userController.create);
-  app.get('/users/:userId', auth.isAuthenticated, auth.user.isAuthorized, utils.saveAsLastPage, controllers.userController.show, utils.sendResponse);
+  app.get('/users/:userId', auth.isAuthenticated, auth.user.isAuthorized, utils.saveAsLastPage, controllers.userController.show);
 
   // Todo controller actions
   app.all('/users/:userId/todos*', auth.isAuthenticated, auth.user.isAuthorized);
@@ -41,7 +43,7 @@ module.exports = function(app) {
   var router = app.router;
 
   // If we don't match any of the routes, serve static content
-  var static = express.static(path.resolve(__dirname, '../public'));
+  var staticMiddleware = express.static(path.resolve(__dirname, '../public'));
 
 
   // This is a pattern for gluing together multiple middleware functions into a single piece of middleware.
@@ -50,7 +52,7 @@ module.exports = function(app) {
       if (err) {
         return next(err);
       }
-      static(req, res, next);
+      staticMiddleware(req, res, next);
     });
   };
 

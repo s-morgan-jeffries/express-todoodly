@@ -1,8 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
-  utils = require('../../lib/middleware/utils'),
-  statusCodes = require('../../config/statusCodes');
+var statusCodes = require('../../config/statusCodes');
 
 module.exports = function(Todo) {
   var moduleExports = {};

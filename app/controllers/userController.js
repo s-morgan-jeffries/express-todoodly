@@ -1,8 +1,7 @@
 'use strict';
 
-var _ = require('lodash'),
-  utils = require('../../lib/middleware/utils'),
-  statusCodes = require('../../config/statusCodes');
+var statusCodes = require('../../config/statusCodes'),
+  ControllerHelper = require('../../lib/ControllerHelper');
 
 //HTTP Verb	Path	Action	Used for
 //  GET	/photos	index	display a list of all photos
@@ -27,76 +26,41 @@ module.exports = function(User) {
 
   // User profile page
   moduleExports.show = function(req, res, next) {
-    var config = req.session.responseConfig = (req.session.responseConfig || {});
-    config.template = 'user/show';
-    next();
+    var controllerHelper = new ControllerHelper(req, res, next);
+    controllerHelper.config.template = 'user/show';
+    controllerHelper.sendResponse();
   };
 
   // Create a new user (via post request)
   moduleExports.create = function (req, res, next) {
-    // When you go to create a new user, the parsed request body is passed as parameters. I'm introducing a whitelist here
-    // for security.
-    var whitelistParams = ['email', 'password', 'passwordConfirmation'],
-      userParams = _.pick(req.body, whitelistParams),
-      newUser;
+    var controllerHelper,
+      userParams;
 
-    var config = req.session.responseConfig = (req.session.responseConfig || {});
-    config.content = config.content || {};
-    config.content.alerts = config.content.alerts || {};
+    controllerHelper = new ControllerHelper(req, res, next);
+    controllerHelper.successMessage = 'Account created successfully!';
+    controllerHelper.successRedirect = '/';
+    controllerHelper.paramConfig = {email: [], password: [], passwordConfirmation: []};
+    userParams = controllerHelper.sanitizeParams();
 
     // buildUserFromRaw runs asynchronously, so we have to give a callback.
-    User.buildUserFromRaw(userParams, function(err, builtUser) {
-//        err = new Error('Fuck!');
+    User.buildUserFromRaw(userParams, function(err, newUser) {
       if (err) {
-        config.content.alerts.main = {
-          msg: 'Oops. Something went wrong. We\'re working on it!',
-          type: 'danger'
-        };
-        err.template = req.session && req.session.lastTemplate || 'staticPages/home';
-        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
-        return next(err);
+        return controllerHelper.sendServerError(err);
       }
-      newUser = builtUser;
-
       newUser.save(function(err) {
         if (err) {
           if (err.name === 'ValidationError' || err.status === statusCodes.VALIDATION_ERROR_STATUS) {
-            config.content.alerts[err.field] = {
-              msg: err.message,
-              type: 'danger'
-            };
-            err.status = err.status || statusCodes.VALIDATION_ERROR_STATUS;
+            return controllerHelper.sendValidationError(err);
           } else {
-            config.content.alerts.main = {
-              msg: 'Oops. Something went wrong.',
-              type: 'danger'
-            };
-            err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+            return controllerHelper.sendServerError(err);
           }
-          err.template = req.session && req.session.lastTemplate || 'staticPages/home';
-//          err.redirectTo = req.session && req.session.lastPage || '/';
-          return next(err);
         }
-
         // This method (logIn or login) is exposed by passport. It establishes a login session.
         req.logIn(newUser, function(err) {
           if (err) {
-            config.content.alerts.main = {
-              msg: 'Oops. Something went wrong.',
-              type: 'danger'
-            };
-            err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
-            err.template = req.session && req.session.lastTemplate || 'staticPages/home';
-//            err.redirectTo = req.session && req.session.lastPage || '/';
-            return next(err);
+            return controllerHelper.sendServerError(err);
           }
-          // Send a message to the user that this worked
-          config.content.alerts.main = {
-            msg: 'Account created successfully!',
-            type: 'success'
-          };
-          // Redirect to the user's home page.
-          res.status(statusCodes.POST_REDIRECT_STATUS).redirect('/');
+          controllerHelper.success();
         });
       });
 

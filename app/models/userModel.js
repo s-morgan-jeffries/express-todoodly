@@ -219,8 +219,7 @@ UserSchema.statics = {
   // function signature of done is function(err, builtUser)
   buildUserFromRaw: function(userProps, done) {
     var User = this,
-      password = userProps.password,
-      passwordConfirmation = userProps.passwordConfirmation;
+      password = userProps.password;
 
     // NB: I'm not comparing password to passwordConfirmation here because I think it's slightly clearer to have all the
     // validations done in one place (the pre-save hook, above).

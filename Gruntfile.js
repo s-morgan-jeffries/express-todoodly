@@ -1,7 +1,7 @@
 'use strict';
 
 var request = require('request');
-var _ = require('lodash');
+//var _ = require('lodash');
 
 module.exports = function (grunt) {
   // show elapsed time at the end
@@ -10,6 +10,23 @@ module.exports = function (grunt) {
   require('load-grunt-tasks')(grunt);
 
   var reloadPort = 35729, files;
+
+  var yeomanFiles = {
+    server: [
+      'server.js',
+      'app/**/*.js',
+      '!app/views/**/*',
+      'config/**/*.js',
+      'lib/**/*.js'
+    ],
+    gruntfile: ['Gruntfile.js'],
+    public: [
+      'public/**/*',
+      '!public/**/*.{scss,sass}'
+    ],
+    views: ['app/views/**/*'],
+    sass: ['public/css/**/*.{scss,sass}']
+  };
 
   grunt.initConfig({
 
@@ -92,7 +109,7 @@ module.exports = function (grunt) {
         // useCoffee: Boolean. Default: false
         // isVerbose: Boolean. Default: true
         // showColors: Boolean. Default: true
-        specNameMatcher: "Spec", // load only specs containing specNameMatcher
+        specNameMatcher: 'Spec', // load only specs containing specNameMatcher
 //      specFolders: ['./test/spec'],
 //        projectRoot: './test/spec',
         verbose: false,
@@ -100,7 +117,7 @@ module.exports = function (grunt) {
 //        forceExit: true,
         jUnit: {
           report: true,
-          savePath : "./test/reports/",
+          savePath : './test/reports/',
           useDotNotation: true,
           consolidate: true
         }
@@ -116,6 +133,29 @@ module.exports = function (grunt) {
         }
       }
     },
+
+    // Make sure code styles are up to par and there are no obvious mistakes
+    jshint: (function() {
+      var config = {};
+
+      config.options = {
+        jshintrc: '.jshintrc',
+        reporter: require('jshint-stylish')
+      };
+      config.server = {
+        src: yeomanFiles.server
+      };
+      config.gruntfile = {
+        src: yeomanFiles.gruntfile
+      };
+      config.all = {
+        src: []
+          .concat(config.gruntfile.src)
+          .concat(config.server.src)
+      };
+
+      return config;
+    }()),
 
 // This opens up the app in the browser
     open: {
@@ -161,42 +201,39 @@ module.exports = function (grunt) {
         livereload: reloadPort
       },
       server: {
-        files: [
-          'server.js',
-          'app/**/*.js',
-          '!app/views/**/*',
-          'config/**/*.js',
-          'lib/**/*.js'
-        ],
-//        tasks: ['develop', 'delayed-livereload'],
+        files: yeomanFiles.server,
         tasks: ['develop', 'pause:5000'],
-//        tasks: ['express:dev'],
         options: {
           livereload: true,
           interrupt: true,
           spawn: false //Without this option specified express won't be reloaded,
         }
       },
+//      jshint: {
+//        files: (yeomanFiles.server).concat(yeomanFiles.gruntfile),
+//        tasks: ['jshint:all']
+////        options: {
+////          atBegin: true
+////        }
+//      },
       public: {
-        files: [
-          'public/**/*',
-          '!public/**/*.{scss,sass}'
-        ],
+        files: yeomanFiles.public,
         options: {
           livereload: reloadPort
         }
       },
       views: {
-        files: ['app/views/**/*'],
+        files: yeomanFiles.views,
         options: {
           livereload: reloadPort
         }
       },
       sass: {
-        files: ['public/css/**/*.{scss,sass}'],
+        files: yeomanFiles.sass,
         tasks: ['sass:devServe']
       }
     }
+
   });
 
   grunt.config.requires('watch.server.files');
@@ -274,10 +311,12 @@ module.exports = function (grunt) {
   // This just delegates to the jasmine_node task. For future reference, this is how you should set up testing on the
   // back-end. Note that this depends on the jasmine-node and grunt-jasmine-node packages, and you should look at the
   // source code for those if you want to understand what's going on.
-  grunt.registerMultiTask('jasmineNode', function(target) {
+  grunt.registerMultiTask('jasmineNode', function(/*target*/) {
     var jasmineNodeConfig = this.options();
 
+    /* jshint camelcase: false */
     grunt.config.data.jasmine_node = jasmineNodeConfig;
+    /* jshint camelcase: true */
     grunt.task.run('jasmine_node');
   });
 

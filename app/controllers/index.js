@@ -1,8 +1,6 @@
 'use strict';
 
-var fs = require('fs'),
-  path = require('path'),
-  mongoose = require('mongoose'),
+var mongoose = require('mongoose'),
   passport = require('passport');
 
 module.exports = (function() {

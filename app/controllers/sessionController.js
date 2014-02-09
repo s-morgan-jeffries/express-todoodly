@@ -1,7 +1,6 @@
 'use strict';
 
-var utilMware = require('../../lib/middleware/utils'),
-  utils = require('../../lib/utils'),
+var utils = require('../../lib/utils'),
   _ = require('lodash'),
   statusCodes = require('../../config/statusCodes');
 

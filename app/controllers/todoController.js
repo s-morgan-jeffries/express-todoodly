@@ -12,7 +12,8 @@ var _ = require('lodash'),
 //PATCH/PUT	/photos/:id	update	update a specific photo
 //DELETE	/photos/:id	destroy	delete a specific photo
 
-module.exports = function(todoModel) {
+
+module.exports = function(TodoModel) {
   var moduleExports = {};
 
   // Add a todo
@@ -21,12 +22,12 @@ module.exports = function(todoModel) {
     config.content = config.content || {};
     config.content.alerts = config.content.alerts || {};
     
-    var todo = new todoModel;
+    var todo = new TodoModel();
     // t0d0: Sanitize req.body.content in todoController (in create, update)
     // Since I'm only grabbing specific properties, this is an implicit whitelist.
     todo.content = req.body.content;
     todo.user = req.user;
-    todo.save(function(err, savedTodo) {
+    todo.save(function(err/*, savedTodo*/) {
       if (err) {
         config.content.alerts.main = {
           msg: 'Oops. Something went wrong. We\'re working on it!',
@@ -50,8 +51,8 @@ module.exports = function(todoModel) {
     config.content = config.content || {};
     config.content.alerts = config.content.alerts || {};
 
-    todoModel
-      .update({_id: req.params.todoId}, updateParams, function(err, numberAffected, raw) {
+    TodoModel
+      .update({_id: req.params.todoId}, updateParams, function(err/*, numberAffected, raw*/) {
         if (err) {
           config.content.alerts.main = {
             msg: 'Oops. Something went wrong. We\'re working on it!',
@@ -71,9 +72,9 @@ module.exports = function(todoModel) {
     config.content = config.content || {};
     config.content.alerts = config.content.alerts || {};
 
-    todoModel
+    TodoModel
       .findById(req.params.todoId)
-      .remove(function(err, todo) {
+      .remove(function(err/*, todo*/) {
         if (err) {
           config.content.alerts.main = {
             msg: 'Oops. Something went wrong.',
