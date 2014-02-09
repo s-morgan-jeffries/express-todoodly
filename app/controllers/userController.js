@@ -1,7 +1,8 @@
 'use strict';
 
 var _ = require('lodash'),
-  utils = require('../../lib/middleware/utils');
+  utils = require('../../lib/middleware/utils'),
+  statusCodes = require('../../config/statusCodes');
 
 //HTTP Verb	Path	Action	Used for
 //  GET	/photos	index	display a list of all photos
@@ -12,10 +13,10 @@ var _ = require('lodash'),
 //PATCH/PUT	/photos/:id	update	update a specific photo
 //DELETE	/photos/:id	destroy	delete a specific photo
 
-module.exports = function(User, mongoose) {
 
-  var moduleExports = {},
-    ObjectId = mongoose.Types.ObjectId;
+module.exports = function(User) {
+
+  var moduleExports = {};
 
   // Render a signup form for creating a new user. The screwy name is because new is a reserved word in JavaScript.
   moduleExports.neu = function(req, res, next) {
@@ -45,33 +46,35 @@ module.exports = function(User, mongoose) {
 
     // buildUserFromRaw runs asynchronously, so we have to give a callback.
     User.buildUserFromRaw(userParams, function(err, builtUser) {
+//        err = new Error('Fuck!');
       if (err) {
         config.content.alerts.main = {
-          msg: 'Oops. Something went wrong.',
+          msg: 'Oops. Something went wrong. We\'re working on it!',
           type: 'danger'
         };
-        err.redirectTo = req.session && req.session.lastPage || '/';
-        err.status = err.status || 500;
+        err.template = req.session && req.session.lastTemplate || 'staticPages/home';
+        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
         return next(err);
       }
       newUser = builtUser;
 
       newUser.save(function(err) {
         if (err) {
-          if (err.name === 'ValidationError' || err.status === 422) {
+          if (err.name === 'ValidationError' || err.status === statusCodes.VALIDATION_ERROR_STATUS) {
             config.content.alerts[err.field] = {
               msg: err.message,
               type: 'danger'
             };
-            err.status = err.status || 422;
+            err.status = err.status || statusCodes.VALIDATION_ERROR_STATUS;
           } else {
             config.content.alerts.main = {
               msg: 'Oops. Something went wrong.',
               type: 'danger'
             };
-            err.status = err.status || 500;
+            err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
           }
-          err.redirectTo = req.session && req.session.lastPage || '/';
+          err.template = req.session && req.session.lastTemplate || 'staticPages/home';
+//          err.redirectTo = req.session && req.session.lastPage || '/';
           return next(err);
         }
 
@@ -82,8 +85,9 @@ module.exports = function(User, mongoose) {
               msg: 'Oops. Something went wrong.',
               type: 'danger'
             };
-            err.status = err.status || 500;
-            err.redirectTo = req.session && req.session.lastPage || '/';
+            err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+            err.template = req.session && req.session.lastTemplate || 'staticPages/home';
+//            err.redirectTo = req.session && req.session.lastPage || '/';
             return next(err);
           }
           // Send a message to the user that this worked
@@ -92,7 +96,7 @@ module.exports = function(User, mongoose) {
             type: 'success'
           };
           // Redirect to the user's home page.
-          res.redirect('/');
+          res.status(statusCodes.POST_REDIRECT_STATUS).redirect('/');
         });
       });
 

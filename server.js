@@ -6,57 +6,61 @@ var express = require('express'),
   controllers = require('./app/controllers'),
   db = require('./config/db'),
   routes = require('./config/routes'),
+  logger = require('./config/logger'),
   sessions = require('./config/sessions'),
+  bodyParser = require('./config/bodyParser'),
   passport = require('./config/passport'),
-  utils = require('./lib/middleware/utils'),
+  initResponseConfig = require('./lib/middleware/utils').initResponseConfig,
   errorHandler = require('./lib/middleware/errorHandler'),
-  debug = require('./lib/middleware/debug');
+  debug = require('./lib/middleware/debug'),
+  DEFAULT_PORT = 3000;
 
-// This should be as early as possible
-app.use(express.logger('dev'));
 
-// This doesn't have to be early, but it seems to fit here.
-app.set('port', process.env.PORT || 3000);
-
-// Initialize the db connection
+//////////////////// Initialization/Configuration ////////////////////
+// Initialize the db connection, models, and controllers
 db.init();
-
-// Initialize models
 models.init();
-
-// Initialize controllers
 controllers.init();
 
 // Configure views
-views.init(app);
+views.config(app);
+
+// Set the port
+app.set('port', process.env.PORT || DEFAULT_PORT);
+//////////////////// Initialization/Configuration ////////////////////
+
+
+//////////////////// Middleware stack ////////////////////
+// Logging (should be as early as possible). I've moved this into a config module in case I want to modify it later.
+app.use(logger());
 
 // Body parsing and method override
-app.use(express.json());
-app.use(express.urlencoded());
-// methodOverride looks for a key ('_method' by default) in the now parsed request body, and if it finds it, it
-// replaces the request's method with the value of that property. I guess (?) browser's will only set the method to a
-// restricted set of values, and those often don't include DELETE or PUT.
-app.use(express.methodOverride());
+app.use(bodyParser());
 
-// Initialize sessions
-sessions.init(app);
-
-// Initialize passport (has to come after sessions)
-passport.init(app);
+// Session middleware (includes cookieParser and session)
+app.use(sessions());
 
 // CSRF (has to come after sessions)
 app.use(express.csrf());
 
-// Sets up responseConfig in the sessions store. This has to come after sessions and csrf.
-app.use(utils.initResponseConfig);
+// Passport.js (has to come after sessions). Calling the function initializes Passport and returns a piece of middleware
+// that internally delegates to passport.initialize() and passport.sessions().
+app.use(passport());
 
-// Configure the routes
-routes.init(app);
+// Sets up responseConfig in the sessions store. This has to come after sessions, csrf, and passport.
+app.use(initResponseConfig);
 
-// Error handling should come after almost everything else.
-app.use(errorHandler());
+// Configure the routes (dynamic routes are served preferentially over static content)
+app.use(routes(app));
 
+// Error handling should come at the bottom of the stack.
+app.use(errorHandler);
+//////////////////// Middleware stack ////////////////////
+
+
+//////////////////// Server creation ////////////////////
 // Create the server
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+//////////////////// Server creation ////////////////////

@@ -12,7 +12,7 @@ module.exports = (function() {
     this.sessionController = require('./sessionController')(passport);
     this.staticPagesController = require('./staticPagesController')(mongoose.model('Todo'));
     this.todoController = require('./todoController')(mongoose.model('Todo'));
-    this.userController = require('./userController')(mongoose.model('User'), mongoose);
+    this.userController = require('./userController')(mongoose.model('User'));
   };
 
   return moduleExports;

@@ -4,7 +4,7 @@ var mongoose = require('mongoose'),
   Schema = mongoose.Schema,
   bcrypt = require('bcrypt'),
   _ = require('lodash'),
-  validationErrorStatusCode = 422,
+  statusCodes = require('../../config/statusCodes'),
   minPasswordLen = 5,
   numRounds,
   seedLength,
@@ -89,12 +89,12 @@ var isEmail = function(email) {
 var validateEmailAvailable = function(email, done) {
   mongoose.models.User.findOne({email: email}, function(err, user) {
     if(err) {
-      err.status = err.status || 500;
+      err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
       return done(err);
     }
     if(user) {
       err = new Error('The specified email address is already in use');
-      err.status = validationErrorStatusCode;
+      err.status = statusCodes.VALIDATION_ERROR_STATUS;
       err.field = 'email';
       return done(err);
     }
@@ -122,41 +122,41 @@ UserSchema.pre('validate', function(next) {
 
   if (!validatePresenceOf(this.email)) {
     err = new Error('Missing email');
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'email';
     return next(err);
   }
   if (!isEmail(this.email)) {
     err = new Error('The specified email is invalid.');
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'email';
     return next(err);
   }
   if (!validatePresenceOf(this.password)) {
     err = new Error('Missing password');
     // Give it a bad syntax status code
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'password';
     return next(err);
   }
   if (!validateLengthOf(this.password, {min: minPasswordLen})) {
     err = new Error('Password must be at least ' + minPasswordLen + ' characters');
     // Give it a bad syntax status code
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'password';
     return next(err);
   }
   if (!validatePresenceOf(this.passwordConfirmation)) {
     err = new Error('Missing password confirmation');
     // Give it a bad syntax status code
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'passwordConfirmation';
     return next(err);
   }
   if (this.password !== this.passwordConfirmation) {
     err = new Error('Password confirmation does not match password');
     // Give it a bad syntax status code
-    err.status = validationErrorStatusCode;
+    err.status = statusCodes.VALIDATION_ERROR_STATUS;
     err.field = 'passwordConfirmation';
     return next(err);
   }
@@ -206,7 +206,7 @@ UserSchema.statics = {
     // Creating the hash requires two steps, performed asynchronously. First we generate a salt.
     bcrypt.genSalt(numRounds, seedLength, function(err, salt) {
       if (err) {
-        err.status = err.status || 500;
+        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
         return done(err);
       }
       // Then we hash the password with the salt.
@@ -222,12 +222,15 @@ UserSchema.statics = {
       password = userProps.password,
       passwordConfirmation = userProps.passwordConfirmation;
 
+    // NB: I'm not comparing password to passwordConfirmation here because I think it's slightly clearer to have all the
+    // validations done in one place (the pre-save hook, above).
+
     this.createPasswordHash(password, function(err, salt, hash) {
       var builtUser,
         userBuildProps = _.clone(userProps);
 
       if (err) {
-        err.status = err.status || 500;
+        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
         return done(err);
       }
       userBuildProps.passwordSalt = salt;

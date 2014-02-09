@@ -2,7 +2,8 @@
 
 var utilMware = require('../../lib/middleware/utils'),
   utils = require('../../lib/utils'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  statusCodes = require('../../config/statusCodes');
 
 module.exports = function(passport) {
   var moduleExports = {};
@@ -24,12 +25,11 @@ module.exports = function(passport) {
     // (that has optionally been modified with additional properties) and uses it to construct an alert (which will
     // ultimately be rendered as part of the signin form). It then passes the error to next().
     var alertAndReturnErr = function(e) {
-//      console.log(e);
       config.content.alerts[e.field || 'main'] = {
         msg: e.userMsg || e.message,
         type: 'danger'
       };
-      e.redirectTo = req.session && req.session.lastPage || '/';
+      e.template = req.session && req.session.lastTemplate || 'staticPages/home';
       return next(e);
     };
 
@@ -41,7 +41,7 @@ module.exports = function(passport) {
     // No email address provided
     if (!email) {
       valErr = new Error('No email provided');
-      valErr.status = 401;
+      valErr.status = statusCodes.UNAUTHORIZED_STATUS;
       valErr.field = 'email';
       valErr.userMsg = 'Must provide a valid email.';
       return alertAndReturnErr(valErr);
@@ -49,7 +49,7 @@ module.exports = function(passport) {
     // Invalid email address
     if (!utils.isEmail(email)) {
       valErr = new Error('Invalid email provided');
-      valErr.status = 401;
+      valErr.status = statusCodes.UNAUTHORIZED_STATUS;
       valErr.field = 'email';
       valErr.userMsg = 'Must provide a valid email.';
       return alertAndReturnErr(valErr);
@@ -57,7 +57,7 @@ module.exports = function(passport) {
     // No password provided
     if (!password) {
       valErr = new Error('No password provided');
-      valErr.status = 401;
+      valErr.status = statusCodes.UNAUTHORIZED_STATUS;
       valErr.field = 'password';
       valErr.userMsg = 'Must provide a password.';
       return alertAndReturnErr(valErr);
@@ -69,7 +69,7 @@ module.exports = function(passport) {
     passport.authenticate('local', function(err, user, info) {
       // This means there was a server error.
       if (err) {
-        err.status = err.status || 500;
+        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
         err.userMsg = 'Oops! Something went wrong.';
         return alertAndReturnErr(err);
       }
@@ -81,7 +81,7 @@ module.exports = function(passport) {
           return alertAndReturnErr(info);
         } else {
           err = new Error('Unknown authentication error');
-          err.status = 401;
+          err.status = statusCodes.UNAUTHORIZED_STATUS;
           return alertAndReturnErr(err);
         }
       }
@@ -91,18 +91,19 @@ module.exports = function(passport) {
       var sessionStore = req.session;
       req.session.regenerate(function(err) {
         if (err) {
-          err.status = err.status || 500;
+          err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
           err.userMsg = 'Oops! Something went wrong.';
           return alertAndReturnErr(err);
         }
         _.defaults(req.session, sessionStore);
         req.logIn(user, function(err) {
           if (err) {
-            err.status = err.status || 500;
+            err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
             err.userMsg = 'Oops! Something went wrong.';
             return alertAndReturnErr(err);
           }
-          res.redirect(req.session.postLoginRedirect || '/');
+          // This is a successful login
+          res.status(statusCodes.POST_REDIRECT_STATUS).redirect(req.session.postLoginRedirect || '/');
           delete req.session.postLoginRedirect;
         });
       });
@@ -129,18 +130,18 @@ module.exports = function(passport) {
             msg: 'Oops! Something went wrong.',
             type: 'danger'
           };
-          err.status = err.status || 500;
-          err.redirectTo = req.session && req.session.lastPage || '/';
+          err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+          err.template = 'staticPages/home';
           return next(err);
         }
-        res.redirect('/');
+        res.status(statusCodes.POST_REDIRECT_STATUS).redirect('/');
       });
     } else {
       // Is this really necessary? Probably for logging purposes, since the logout form shouldn't even be exposed unless
       // you're logged in. I'll leave it in for now.
       var err = new Error('Not logged in');
-      err.status = 401;
-      err.redirectTo = req.session && req.session.lastPage || '/';
+      err.status = statusCodes.UNAUTHORIZED_STATUS;
+      err.template = 'staticPages/home';
       next(err);
     }
   };

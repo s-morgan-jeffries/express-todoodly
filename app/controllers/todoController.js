@@ -1,6 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
+var _ = require('lodash'),
+  statusCodes = require('../../config/statusCodes');
 
 //HTTP Verb	Path	Action	Used for
 //  GET	/photos	index	display a list of all photos
@@ -21,24 +22,21 @@ module.exports = function(todoModel) {
     config.content.alerts = config.content.alerts || {};
     
     var todo = new todoModel;
-
+    // t0d0: Sanitize req.body.content in todoController (in create, update)
+    // Since I'm only grabbing specific properties, this is an implicit whitelist.
     todo.content = req.body.content;
     todo.user = req.user;
     todo.save(function(err, savedTodo) {
       if (err) {
         config.content.alerts.main = {
-          msg: 'Oops. Something went wrong.',
+          msg: 'Oops. Something went wrong. We\'re working on it!',
           type: 'danger'
         };
-        err.status = err.status || 500;
-        err.redirectTo = req.session && req.session.lastPage || '/';
+        err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+        err.template = req.session && req.session.lastTemplate || 'staticPages/home';
         return next(err);
       }
-//      config.content.alerts.main = {
-//        msg: 'You created that shit!',
-//        type: 'success'
-//      };
-      res.redirect(req.session.lastPage);
+      res.status(statusCodes.POST_REDIRECT_STATUS).redirect(req.session.lastPage);
     });
   };
 
@@ -56,14 +54,14 @@ module.exports = function(todoModel) {
       .update({_id: req.params.todoId}, updateParams, function(err, numberAffected, raw) {
         if (err) {
           config.content.alerts.main = {
-            msg: 'Oops. Something went wrong.',
+            msg: 'Oops. Something went wrong. We\'re working on it!',
             type: 'danger'
           };
-          err.status = err.status || 500;
-          err.redirectTo = req.session && req.session.lastPage || '/';
+          err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+          err.template = req.session && req.session.lastTemplate || 'staticPages/home';
           return next(err);
         }
-        res.redirect(req.session.lastPage);
+        res.status(statusCodes.POST_REDIRECT_STATUS).redirect(req.session.lastPage);
       });
   };
 
@@ -81,11 +79,11 @@ module.exports = function(todoModel) {
             msg: 'Oops. Something went wrong.',
             type: 'danger'
           };
-          err.status = err.status || 500;
-          err.redirectTo = req.session && req.session.lastPage || '/';
+          err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
+          err.template = req.session && req.session.lastTemplate || 'staticPages/home';
           return next(err);
         }
-        res.redirect(req.session.lastPage);
+        res.status(statusCodes.POST_REDIRECT_STATUS).redirect(req.session.lastPage);
       });
   };
 
