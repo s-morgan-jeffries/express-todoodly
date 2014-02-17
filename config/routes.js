@@ -27,12 +27,16 @@ var configRoutes = function(app) {
   app.delete('/signout', controllers.sessionController.destroy);
 
   // User controller actions
-  app.get('/signup', auth.isNotAuthenticated, utils.saveAsLastPage, controllers.userController.neu, utils.sendResponse);
+  app.get('/signup', auth.isNotAuthenticated, utils.saveAsLastPage, controllers.userController.neu);
   app.post('/users', controllers.userController.create);
-  app.get('/users/:userId', auth.isAuthenticated, auth.user.isAuthorized, utils.saveAsLastPage, controllers.userController.show);
+  app.all('/users/:userId*', auth.isAuthenticated, auth.user.isAuthorized);
+  app.get('/users/:userId', utils.saveAsLastPage, controllers.userController.show);
+  app.get('/users/:userId/edit', utils.saveAsLastPage, controllers.userController.edit);
+  app.get('/users/:userId/confirmDelete', utils.saveAsLastPage, controllers.userController.confirmDelete);
+  app.delete('/users/:userId', controllers.userController.destroy);
 
   // Todo controller actions
-  app.all('/users/:userId/todos*', auth.isAuthenticated, auth.user.isAuthorized);
+//  app.all('/users/:userId/todos*', auth.isAuthenticated, auth.user.isAuthorized);
   app.get('/users/:userId/todos*', redirectTo('/home'));
   app.post('/users/:userId/todos', controllers.todoController.create);
   app.patch('/users/:userId/todos/:todoId', controllers.todoController.update);

@@ -33,7 +33,8 @@ module.exports = function(passport) {
     };
 
     // Validation of our parameters has to happen before the call to passport.authenticate (otherwise, we just get a
-    // relatively uninformative error that the credentials are missing).
+    // relatively uninformative error that the credentials are missing). Also, this can't happen at the model level,
+    // since we don't have one.
     var valErr,
       email = req.body.email,
       password = req.body.password;

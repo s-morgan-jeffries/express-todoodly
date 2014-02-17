@@ -1,0 +1,14 @@
+<div class="row-marketing">
+    <h1>Are you sure you want to delete your account?</h1>
+    <h3>This action cannot be undone.</h3>
+    <div class="confirm-delete-container">
+        <a class="btn btn-primary" href="/users/{{user.id}}">No, take me back to my profile page</a>
+        <form class="button-form" action="/users/{{user.id}}" method="post">
+            <input type="hidden" name="_method" value="delete">
+            {{>shared/csrf}}
+            <button class="btn btn-danger" type="submit">
+                Yes, delete my account
+            </button>
+        </form>
+    </div>
+</div>

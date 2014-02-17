@@ -1,0 +1,23 @@
+<div class="row marketing">
+    <form role="form" id="edituserform" action="/users/{{user.id}}" method="post" accept-charset="utf-8">
+        <input type="hidden" name="_method" value="patch">
+        {{>shared/csrf}}
+        <h1>Edit Account</h1>
+        <div class="form-group">
+            <label for="edituserform:email">Email address</label>
+            <input type="email" class="form-control" id="edituserform:email" name="email" placeholder="Enter email" value="{{{email}}}" autofocus/>
+        </div>
+        {{#if alerts.email}}
+            <div class="alert alert-{{alerts.email.type}}">{{alerts.email.msg}}</div>
+        {{/if}}
+        <div class="form-group">
+            <label for="edituserform:password">Password</label>
+            <input type="password" class="form-control" id="edituserform:password" name="password" placeholder="Enter password" />
+        </div>
+        {{#if alerts.password}}
+            <div class="alert alert-{{alerts.password.type}}">{{alerts.password.msg}}</div>
+        {{/if}}
+        <a class="btn btn-danger" href="/users/{{user.id}}">Cancel</a>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>

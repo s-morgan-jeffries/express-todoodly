@@ -6535,10 +6535,50 @@ footer {
 .todo-content {
   font-size: 1.25em;
   display: inline-block;
-  width: 50%;
+  width: 45%;
   vertical-align: middle;
 }
 
 .add-todo-content {
   margin-left: 55px;
+}
+
+.button-form {
+  padding: 0px;
+}
+
+.button-form__button {
+  padding: 10px 15px;
+}
+
+.nav > li button:hover {
+  text-decoration: none;
+  background-color: #eeeeee;
+}
+
+.nav-pills > li button {
+  border-radius: 4px;
+}
+
+.button-form--todo {
+  width: 13%;
+  display: inline-block;
+}
+
+.show-container > a {
+  display: block;
+  width: 50%;
+  margin: 10px auto;
+}
+
+.confirm-delete-container {
+  text-align: center;
+}
+.confirm-delete-container > a, .confirm-delete-container form {
+  display: block;
+  width: 50%;
+  margin: 10px auto;
+}
+.confirm-delete-container > a > button, .confirm-delete-container form > button {
+  width: 100%;
 }

@@ -5,13 +5,14 @@ var mongoose = require('mongoose'),
   bcrypt = require('bcrypt'),
   _ = require('lodash'),
   statusCodes = require('../../config/statusCodes'),
+  validator = require('../../lib/validator'),
   minPasswordLen = 5,
   numRounds,
   seedLength,
-  UserSchema;
+  UserSchema,
+  TodoModel;
 
 if (process.env.NODE_ENV === 'production') {
-  //t0d0: Figure out acceptable values for numRounds and seedLength
   numRounds = 10;
   seedLength = 20;
 } else {
@@ -23,17 +24,21 @@ UserSchema = new Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
+    required: 'Must provide an email',
     lowercase: true
   },
   passwordHash: {
-    type: String
-//    required: true
+    type: String,
+    required: true
   },
   passwordSalt: {
-    type: String
-//    required: true
-  }
+    type: String,
+    required: true
+  },
+  todos: [{
+    type: Schema.ObjectId,
+    ref: 'Todo'
+  }]
 //  name: String,
 //  admin: Boolean,
 //  guest: Boolean,
@@ -58,130 +63,38 @@ UserSchema
     return this._password;
   });
 
-
-UserSchema
-  .virtual('passwordConfirmation')
-  .set(function(passwordConfirmation) {
-    this._passwordConfirmation = passwordConfirmation;
-  })
-  .get(function() {
-    return this._passwordConfirmation;
-  });
-
 /**
  * Validations
  */
 
-// Validations are explained here: http://mongoosejs.com/docs/validation.html
-var validatePresenceOf = function (value) {
-  return value && value.length;
-};
 
-var validateLengthOf = function (value, len) {
-  return value && (len.min ? value.length >= len.min : true) && (value.max ? value.length <= len.max : true);
-};
-
-var isEmail = function(email) {
-  var emailRegex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
-  return emailRegex.test(email);
-};
-
-var validateEmailAvailable = function(email, done) {
-  mongoose.models.User.findOne({email: email}, function(err, user) {
-    if(err) {
-      err.status = err.status || statusCodes.SERVER_ERROR_STATUS;
-      return done(err);
-    }
-    if(user) {
-      err = new Error('The specified email address is already in use');
-      err.status = statusCodes.VALIDATION_ERROR_STATUS;
-      err.field = 'email';
-      return done(err);
-    }
-    done();
+// Email
+// Required (built-in)
+// Is email
+UserSchema.path('email').validate(function(val) {
+  return validator.isEmail(val);
+}, 'Must provide a valid email');
+// Is not registered
+UserSchema.path('email').validate(function(val, done) {
+  mongoose.models.User.findOne({email: val}, function(err, user) {
+    // If a user is found, the email is taken, and this email is invalid
+    done(!user);
   });
-};
-
-/**
- * Pre-save hook
- */
-// Hooking capabilities provided by hooks-js (https://github.com/bnoguchi/hooks-js). There's no pre-defined set of
-// events to hook on; it's determined by the methods in your object.
-
-// This checks to see if the password exists. It doesn't check whether the password is long enough.
-UserSchema.pre('validate', function(next) {
-  var pendingValidations = 0,
-    allValidationsSubmitted = false,
-    isInvalid = false,
-    err;
-
-  // backburner: Figure out the deal with not validating unless this.isNew
-  if (!this.isNew) {
-    return next();
-  }
-
-  if (!validatePresenceOf(this.email)) {
-    err = new Error('Missing email');
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'email';
-    return next(err);
-  }
-  if (!isEmail(this.email)) {
-    err = new Error('The specified email is invalid.');
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'email';
-    return next(err);
-  }
-  if (!validatePresenceOf(this.password)) {
-    err = new Error('Missing password');
-    // Give it a bad syntax status code
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'password';
-    return next(err);
-  }
-  if (!validateLengthOf(this.password, {min: minPasswordLen})) {
-    err = new Error('Password must be at least ' + minPasswordLen + ' characters');
-    // Give it a bad syntax status code
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'password';
-    return next(err);
-  }
-  if (!validatePresenceOf(this.passwordConfirmation)) {
-    err = new Error('Missing password confirmation');
-    // Give it a bad syntax status code
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'passwordConfirmation';
-    return next(err);
-  }
-  if (this.password !== this.passwordConfirmation) {
-    err = new Error('Password confirmation does not match password');
-    // Give it a bad syntax status code
-    err.status = statusCodes.VALIDATION_ERROR_STATUS;
-    err.field = 'passwordConfirmation';
-    return next(err);
-  }
-  // asynchronous validations
-  var validationDone = function(err) {
-    pendingValidations -= 1;
-    if (isInvalid) {
-      return;
+}, 'Provided email is in use');
+// Password
+UserSchema.path('passwordHash').validate(function(val) {
+  // Minimum length
+  if (this._password) {
+    if (!validator.isLength(this._password, minPasswordLen)) {
+      this.invalidate('password', 'Password must be at least ' + minPasswordLen + ' characters.');
     }
-    if (err) {
-      return next(err);
-    }
-    if (allValidationsSubmitted && !pendingValidations) {
-      return next();
-    }
-  };
-
-  pendingValidations += 1;
-  validateEmailAvailable(this.email, validationDone);
-  allValidationsSubmitted = true;
-
-  if (allValidationsSubmitted && !pendingValidations) {
-    return next();
   }
-});
+  // Required
+//  // backburner: Figure out the deal with not validating unless this.isNew
+  if (this.isNew && !this._password) {
+    this.invalidate('password', 'Must provide a password');
+  }
+}, null);
 
 /**
  * Methods
@@ -198,6 +111,19 @@ UserSchema.methods = {
   checkPassword: function(plainText, done) {
     bcrypt.compare(plainText, this.passwordHash, done);
   }
+};
+// Just for practice, this is a self-defining function
+UserSchema.methods.findTodos = function(done) {
+  // Set the value of TodoModel if it doesn't exist
+  if (!TodoModel) {
+    TodoModel = mongoose.model('Todo');
+  }
+  // Redefine the function
+  this.findTodos = function(done) {
+    return TodoModel.find({user: this._id}, done);
+  };
+  // Call the function
+  return this.findTodos(done);
 };
 
 UserSchema.statics = {
@@ -220,9 +146,6 @@ UserSchema.statics = {
   buildUserFromRaw: function(userProps, done) {
     var User = this,
       password = userProps.password;
-
-    // NB: I'm not comparing password to passwordConfirmation here because I think it's slightly clearer to have all the
-    // validations done in one place (the pre-save hook, above).
 
     this.createPasswordHash(password, function(err, salt, hash) {
       var builtUser,

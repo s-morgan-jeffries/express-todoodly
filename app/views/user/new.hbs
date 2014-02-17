@@ -6,7 +6,7 @@
         <!--<h4>Look at the console to see the magic</h4>-->
         <div class="form-group">
             <label for="signupform:email">Email address</label>
-            <input type="email" class="form-control" id="signupform:email" name="email" placeholder="Enter email" autofocus/>
+            <input type="email" class="form-control" id="signupform:email" name="email" placeholder="Enter email" value="{{{email}}}" autofocus/>
         </div>
         {{#if alerts.email}}
             <div class="alert alert-{{alerts.email.type}}">{{alerts.email.msg}}</div>

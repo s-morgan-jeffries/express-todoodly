@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="author" href="mailto:s.morgan.jeffries@gmail.com">
     <link rel="stylesheet" href="/css/style.css">
     <title>{{ title }}</title>
@@ -18,12 +19,15 @@
         </div>
         {{>layout/footer}}
     </div>
-    {{>layout/debug}}
+    {{#if isDevEnv}}
+        {{>layout/debug}}
+    {{/if}}
     <!--Scripts-->
     {{#if isDevEnv}}
         <script src="http://localhost:35729/livereload.js?snipver=1"></script>
     {{/if}}
-    <script src="/components/jquery/jquery.js"></script>
+    {{!--<script src="/components/jquery/jquery.js"></script>--}}
+
     {{!--<script src="/components/bootstrap-sass/vendor/assets/javascripts/bootstrap/affix.js"></script>--}}
     {{!--<script src="/components/bootstrap-sass/vendor/assets/javascripts/bootstrap/alert.js"></script>--}}
     {{!--<script src="/components/bootstrap-sass/vendor/assets/javascripts/bootstrap/button.js"></script>--}}

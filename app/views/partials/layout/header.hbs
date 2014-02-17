@@ -8,17 +8,15 @@
             {{!--This creates a submit button for a dummy form. The form, in turn, sends a DELETE request to "/signout".
             I had to use a special class to style the button so that it looks like a link. Kind of overkill.--}}
             <li>
-                <button type="submit" class="btn btn-link" form="signout-form">Sign Out</button>
+                {{!--This is the dummy form.--}}
+                <form class="button-form" id="signout-form" action="/signout" method="post">
+                    <input type="hidden" name="_method" value="delete"/>
+                    {{>shared/csrf}}
+                    <button type="submit" class="btn btn-link button-form__button" form="signout-form">Sign Out</button>
+                </form>
             </li>
         {{else}}
             <li><a class="btn" href="/signin">Sign In</a></li>
         {{/if}}
     </ul>
 </header>
-{{#if isAuthenticated}}
-{{!--This is the dummy form.--}}
-    <form id="signout-form" action="/signout" method="post">
-        <input type="hidden" name="_method" value="delete"/>
-        {{>shared/csrf}}
-    </form>
-{{/if}}

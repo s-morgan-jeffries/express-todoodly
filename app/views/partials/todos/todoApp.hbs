@@ -4,7 +4,7 @@
             <input type="hidden" name="_method" value="post" />
             {{>shared/csrf}}
             <label class="sr-only" for="add-todo:content">New todo</label>
-            <input class="form-control todo-content add-todo-content" id="add-todo:content" name="content" type="text" />
+            <input class="form-control todo-content add-todo-content" id="add-todo:content" name="content" type="text" autofocus/>
             <button class="btn btn-link btn-lg" type="submit" form="add-todo">
                 <span class="sr-only">Add</span>
                 <span class="glyphicon glyphicon-plus"></span>
@@ -15,33 +15,33 @@
         <ul class="list-unstyled">
             {{#each todos}}
                 <li>
-                    <form id="{{id}}-update" action="users/{{../user.id}}/todos/{{id}}" method="post">
+                    <form id="{{id}}-update" class="button-form button-form--todo" action="users/{{../user.id}}/todos/{{id}}" method="post">
                         <input type="hidden" name="_method" value="patch" />
                         <input type="hidden" name="isDone" value="{{#unless isDone}}true{{/unless}}" />
                         {{#with ..}}{{>shared/csrf}}{{/with}}
+                        <button class="btn btn-link btn-lg" type="submit" form="{{id}}-update">
+                            {{#if isDone}}
+                                <span class="sr-only">Mark as undone</span>
+                                <span class="glyphicon glyphicon-ok glyphicon-inverse"></span>
+                            {{else}}
+                                <span class="sr-only">Mark as done</span>
+                                <span class="glyphicon glyphicon-ok"></span>
+                            {{/if}}
+                        </button>
                     </form>
-                    <form id="{{id}}-destroy" action="/users/{{../user.id}}/todos/{{id}}" method="post">
-                        <input type="hidden" name="_method" value="delete">
-                        {{#with ..}}{{>shared/csrf}}{{/with}}
-                    </form>
-                    <button class="btn btn-link btn-lg" type="submit" form="{{id}}-update">
-                        {{#if isDone}}
-                            <span class="sr-only">Mark as undone</span>
-                            <span class="glyphicon glyphicon-ok glyphicon-inverse"></span>
-                        {{else}}
-                            <span class="sr-only">Mark as done</span>
-                            <span class="glyphicon glyphicon-ok"></span>
-                        {{/if}}
-                    </button>
                     {{#if isDone}}
                         <strike class="todo-content">{{content}}</strike>
                     {{else}}
                         <span class="todo-content">{{content}}</span>
                     {{/if}}
-                    <button class="btn btn-link btn-lg" type="submit" form="{{id}}-destroy">
-                        <span class="glyphicon glyphicon-remove"></span>
-                        <span class="sr-only">Remove</span>
-                    </button>
+                    <form id="{{id}}-destroy" class="button-form button-form--todo" action="/users/{{../user.id}}/todos/{{id}}" method="post">
+                        <input type="hidden" name="_method" value="delete">
+                        {{#with ..}}{{>shared/csrf}}{{/with}}
+                        <button class="btn btn-link btn-lg" type="submit" form="{{id}}-destroy">
+                            <span class="glyphicon glyphicon-remove"></span>
+                            <span class="sr-only">Remove</span>
+                        </button>
+                    </form>
                 </li>
             {{/each}}
         </ul>

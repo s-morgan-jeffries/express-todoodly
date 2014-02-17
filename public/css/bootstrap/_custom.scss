@@ -75,10 +75,54 @@ footer {
 .todo-content {
   font-size: 1.25em;
   display: inline-block;
-  width: 50%;
+  width: 45%;
   vertical-align: middle;
 }
 
 .add-todo-content {
   margin-left: 55px;
+}
+
+.button-form {
+  padding: 0px;
+}
+
+
+.button-form__button {
+  padding: 10px 15px;
+}
+
+.nav > li button:hover {
+  text-decoration: none;
+  background-color: #eeeeee;
+}
+
+.nav-pills > li button {
+  border-radius: 4px;
+}
+
+.button-form--todo {
+  width: 13%;
+  display: inline-block;
+}
+
+.show-container {
+//  text-align: center;
+  > a {
+    display: block;
+    width: 50%;
+    margin: 10px auto;
+  }
+}
+
+.confirm-delete-container {
+  text-align: center;
+  > a, form {
+    display: block;
+    width: 50%;
+    margin: 10px auto;
+    >button {
+      width: 100%;
+    }
+  }
 }
