@@ -204,12 +204,14 @@ module.exports = function(UserModel) {
       // This uses user.validate to check validation errors, then ignores the one for a non-unique email, then uses
       // user.update to make the changes.
       user.validate(function(err) {
-        if (err.name === 'ValidationError') {
-          appendToValidationErrors(filterValErrs(err));
-        } else {
-          return controllerHelper.sendServerError(err);
+        console.log(err);
+        if (err) {
+          if (err.name === 'ValidationError') {
+            appendToValidationErrors(filterValErrs(err));
+          } else {
+            return controllerHelper.sendServerError(err);
+          }
         }
-
         if (!_.isEmpty(validationErrors)) {
           return reRenderFormWithErrors();
         }
