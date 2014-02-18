@@ -32,8 +32,9 @@ var configRoutes = function(app) {
   app.all('/users/:userId*', auth.isAuthenticated, auth.user.isAuthorized);
   app.get('/users/:userId', utils.saveAsLastPage, controllers.userController.show);
   app.get('/users/:userId/edit', utils.saveAsLastPage, controllers.userController.edit);
-  app.get('/users/:userId/confirmDelete', utils.saveAsLastPage, controllers.userController.confirmDelete);
+  app.patch('/users/:userId', controllers.userController.update);
   app.delete('/users/:userId', controllers.userController.destroy);
+  app.get('/users/:userId/confirmDelete', utils.saveAsLastPage, controllers.userController.confirmDelete);
 
   // Todo controller actions
 //  app.all('/users/:userId/todos*', auth.isAuthenticated, auth.user.isAuthorized);

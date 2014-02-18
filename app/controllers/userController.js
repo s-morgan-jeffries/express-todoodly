@@ -99,7 +99,7 @@ module.exports = function(UserModel) {
           if (err) {
             // This has to deal with any type of error.
             if (err.name === 'ValidationError') {
-              console.log(err);
+//              console.log(err);
               appendToValidationErrors(err);
               return reRenderFormWithErrors();
             } else {
@@ -128,19 +128,99 @@ module.exports = function(UserModel) {
   // Render user edit page
   moduleExports.edit = function(req, res, next) {
     var controllerHelper = new ControllerHelper(req, res, next);
+
+    controllerHelper.config.content.email = req.user.email;
     controllerHelper.config.template = 'user/edit';
     controllerHelper.sendResponse();
   };
 
   // Update user and redirect
   moduleExports.update = function(req, res, next) {
+    var controllerHelper,
+      userParams,
+      validationErrors = {},
+      user,
+      password,
+      valErrBlacklist = ['Provided email is in use'];
 
-  };
+//    var valErr = { message: 'Validation failed', name: 'ValidationError', errors: { email: { message: 'Provided email is in use', name: 'ValidatorError', path: 'email', type: 'user defined', value: 's.morgan.jeffries@gmail.com' }, password: { message: 'Password does not match', name: 'ValidatorError', path: 'password', type: 'user defined', value: 'pass' } } };
 
-  moduleExports.confirmDelete = function(req, res, next) {
-    var controllerHelper = new ControllerHelper(req, res, next);
-    controllerHelper.config.template = 'user/confirmDelete';
-    controllerHelper.sendResponse();
+    var filterValErrs = function(valErr) {
+      valErr = _.cloneDeep(valErr);
+      valErr.errors = _.omit(valErr.errors, function(err) {
+        return _.contains(valErrBlacklist, err.message);
+      });
+      return valErr;
+    };
+
+//    var filterValErrs = function(valErr) { valErr = lodash.cloneDeep(valErr); valErr.errors = lodash.omit(valErr.errors, function(err) { return lodash.contains(valErrBlacklist, err.message); }); return valErr; };
+
+    var appendToValidationErrors = function(valErr) {
+      if (valErr) {
+        _.forOwn(valErr.errors, function(val, key, col) {
+          validationErrors[key] = {
+            param: key,
+            msg: val.message,
+            value: userParams[key]
+          };
+        });
+      }
+    };
+
+    var reRenderFormWithErrors = function() {
+      // Here's where you set the status code, assign values to the parameters, and re-render the form template
+      controllerHelper.config.template = controllerHelper.session.lastTemplate;
+      controllerHelper.config.status = statusCodes.VALIDATION_ERROR_STATUS;
+      _.forIn(validationErrors, function(val, key) {
+        controllerHelper.config.content.alerts[key] = { msg: val.msg, type: 'danger' };
+      });
+      controllerHelper.config.content.email = req.param('email');
+      controllerHelper.sendResponse();
+    };
+
+    controllerHelper = new ControllerHelper(req, res, next);
+    controllerHelper.successMessage = 'Account updated successfully!';
+    controllerHelper.successRedirect = '/users/' + req.user.id;
+
+    userParams = {
+      email: req.param('email')
+    };
+
+    user = req.user;
+    password = req.param('password');
+
+    user.checkPassword(password, function(err, passwordMatches) {
+      if (err) {
+        return controllerHelper.sendServerError(err);
+      }
+      if (!passwordMatches) {
+        validationErrors.password = {
+          param: 'password',
+          msg: 'Password does not match',
+          value: password
+        };
+      }
+      _.extend(user, userParams);
+      // This uses user.validate to check validation errors, then ignores the one for a non-unique email, then uses
+      // user.update to make the changes.
+      user.validate(function(err) {
+        if (err.name === 'ValidationError') {
+          appendToValidationErrors(filterValErrs(err));
+        } else {
+          return controllerHelper.sendServerError(err);
+        }
+
+        if (!_.isEmpty(validationErrors)) {
+          return reRenderFormWithErrors();
+        }
+        user.update(userParams, function(err) {
+          if (err) {
+            return controllerHelper.sendServerError(err);
+          }
+          controllerHelper.success();
+        });
+      });
+    });
   };
 
   // Delete user and redirect
@@ -193,6 +273,12 @@ module.exports = function(UserModel) {
       })
       // Render the response
       .then(returnSuccess, returnErr);
+  };
+
+  moduleExports.confirmDelete = function(req, res, next) {
+    var controllerHelper = new ControllerHelper(req, res, next);
+    controllerHelper.config.template = 'user/confirmDelete';
+    controllerHelper.sendResponse();
   };
 
   return moduleExports;
