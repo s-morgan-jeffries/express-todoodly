@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites>
-<testsuite name="controller1" errors="0" tests="0" failures="0" time="0" timestamp="2014-01-31T15:40:28">
+<testsuite name="controller1" errors="0" tests="0" failures="0" time="0" timestamp="2015-02-01T11:50:27">
 </testsuite>
-<testsuite name="controller1.1+2" errors="0" tests="2" failures="2" time="0.013" timestamp="2014-01-31T15:40:28">
-  <testcase classname="controller1.1+2" name="should equal 3" time="0.011"><failure>1: TypeError: Cannot call method &apos;equal&apos; of undefined</failure></testcase>
+<testsuite name="controller1.1+2" errors="0" tests="2" failures="2" time="0.013" timestamp="2015-02-01T11:50:27">
+  <testcase classname="controller1.1+2" name="should equal 3" time="0.01"><failure>1: TypeError: Cannot call method &apos;equal&apos; of undefined</failure></testcase>
   <testcase classname="controller1.1+2" name="should not equal 3" time="0.001"><failure>1: TypeError: Cannot read property &apos;not&apos; of undefined</failure></testcase>
 </testsuite>
 </testsuites>
