@@ -8,3 +8,4 @@ todo.js
 .prod_env
 .sass-cache
 heroku
+testValidation.js
